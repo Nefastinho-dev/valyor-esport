@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valyor Esport — Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 10px;
+            background-color: #111;
+            border-bottom: 3px solid transparent;
+            border-image: linear-gradient(to right, #2563eb, #7c3aed) 1;
+        }
+        .logo { max-width: 120px; height: auto; margin-bottom: 10px; }
+        h1, h2, h3 {
+            background: linear-gradient(45deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: linear-gradient(45deg, #1d4ed8, #6d28d9);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .nav-btn.active {
+            background: linear-gradient(45deg, #3b82f6, #a855f7);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 25px;
+            background-color: #151515;
+            border-radius: 12px;
+        }
+
+        .section { display: none; }
+        .section.active { display: block !important; }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        label { margin-bottom: 5px; font-weight: bold; color: #a78bfa; }
+        input, select {
+            padding: 10px;
+            background-color: #222;
+            color: white;
+            border: 1px solid #7c3aed;
+            border-radius: 6px;
+            font-size: 15px;
+            width: 100%;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .submit-btn { width: 100%; margin-top: 15px; padding: 12px; font-size: 16px; }
+
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .reward-card {
+            background-color: #0d0d18;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .reward-card .cost { font-size: 1.2em; font-weight: bold; color: #a855f7; margin-top: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #262626; font-size: 0.95em; }
+        th { color: #3b82f6; background-color: #0a0a0a; }
+
+        .social-links { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 20px; }
+        .social-links a {
+            display: block; width: 80%; text-align: center; padding: 15px; border-radius: 8px;
+            text-decoration: none; color: white; font-weight: bold;
+            background-color: #222; border: 1px solid #7c3aed;
+        }
+        
+        .status-msg { text-align: center; margin-top: 15px; font-weight: bold; color: #60a5fa; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="processed_image (59).png" alt="Valyor Logo" class="logo">
+        <h1>Plateforme Valyor Esport</h1>
+        <nav>
+            <button class="nav-btn active" id="btn-inscription">Inscription</button>
+            <button class="nav-btn" id="btn-resultats">Résultat de match</button>
+            <button class="nav-btn" id="btn-classement">Classement & Récompenses</button>
+            <button class="nav-btn" id="btn-credits">Crédits</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+        <!-- SECTION 1 : INSCRIPTION -->
+        <div id="sec-inscription" class="section active">
+            <h2>Créer un compte Joueur</h2>
+            <form id="signup-form">
+                <div class="form-group"><label>Email :</label><input type="email" id="email" required></div>
+                <div class="form-group"><label>Mot de passe :</label><input type="password" id="password" required></div>
+                <div class="form-group"><label>Pseudo en jeu / Site :</label><input type="text" id="username" required></div>
+                
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Pseudo Tracker.gg :</label>
+                        <input type="text" id="tracker-username" placeholder="ex: Player#1234">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Lien Profil Tracker.gg :</label>
+                        <input type="url" id="tracker-link" placeholder="https://tracker.gg/...">
+                    </div>
+                </div>
+
+                <h3>Sélection des Rangs Actuels</h3>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Rocket League :</label>
+                        <select id="rank-rl">
+                            <option value="Non joué">Non joué</option>
+                            <option value="Bronze">Bronze</option><option value="Argent">Argent</option>
+                            <option value="Or">Or</option><option value="Platine">Platine</option>
+                            <option value="Diamant">Diamant</option><option value="Champion">Champion</option>
+                            <option value="GC">GC</option><option value="SSL">SSL</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fortnite :</label>
+                        <select id="rank-ftn">
+                            <option value="Non joué">Non joué</option>
+                            <option value="Bronze">Bronze</option><option value="Argent">Argent</option>
+                            <option value="Gold">Gold</option><option value="Platine">Platine</option>
+                            <option value="Diamant">Diamant</option><option value="Élite">Élite</option>
+                            <option value="Champion">Champion</option><option value="Unreal">Unreal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Brawl Stars :</label>
+                        <select id="rank-bs">
+                            <option value="Non joué">Non joué</option>
+                            <option value="Bronze">Bronze</option><option value="Argent">Argent</option>
+                            <option value="Or">Or</option><option value="Diamant">Diamant</option>
+                            <option value="Mythique">Mythique</option><option value="Légendaire">Légendaire</option>
+                            <option value="Star">Star</option><option value="Pro">Pro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="nav-btn submit-btn">S'inscrire (Vérification Tracker)</button>
+                <div id="auth-status" class="status-msg"></div>
+            </form>
+        </div>
+
+        <!-- SECTION 2 : RESULTAT DE MATCH -->
+        <div id="sec-resultats" class="section">
+            <h2>Soumettre un Résultat de Match</h2>
+            <form id="match-form">
+                <div class="form-group">
+                    <label>Jeu concerné :</label>
+                    <select id="match-game">
+                        <option value="Rocket League">Rocket League</option>
+                        <option value="Fortnite">Fortnite</option>
+                        <option value="Brawl Stars">Brawl Stars</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Adversaire affronté :</label>
+                    <select id="match-opponent">
+                        <option value="">-- Sélectionnez un joueur enregistré --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Capture d'écran du score final :</label>
+                    <input type="file" id="match-file" accept="image/*" required>
+                </div>
+                <button type="submit" class="nav-btn submit-btn">Envoyer et analyser le match</button>
+            </form>
+            <div id="match-status" class="status-msg"></div>
+        </div>
+
+        <!-- SECTION 3 : CLASSEMENT ET RECOMPENSES -->
+        <div id="sec-classement" class="section">
+            <h2>Boutique des Récompenses</h2>
+            <div class="rewards-grid">
+                <div class="reward-card"><div>Retrait avertissement</div><div class="cost">500 pts</div></div>
+                <div class="reward-card"><div>Post Annonces</div><div class="cost">800 pts</div></div>
+                <div class="reward-card"><div>Post Chaîne VALYOR</div><div class="cost">1 000 pts</div></div>
+                <div class="reward-card"><div>Post Chaîne 15k</div><div class="cost">1 500 pts</div></div>
+                <div class="reward-card"><div>Discord secret</div><div class="cost">1 750 pts</div></div>
+            </div>
+
+            <h2 style="margin-top: 30px;">Classement Général par Jeu</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Joueur</th>
+                        <th>RL</th>
+                        <th>Fortnite</th>
+                        <th>Brawl Stars</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SECTION 4 : CREDITS -->
+        <div id="sec-credits" class="section">
+            <h2>Crédits et Réseaux</h2>
+            <div class="social-links">
+                <a href="https://www.twitch.tv/nefaste_rl" target="_blank">📺 Rejoins-nous sur Twitch</a>
+                <a href="https://discord.gg/AmfjhPsW3U" target="_blank">💬 Rejoins le serveur Discord</a>
+                <a href="https://whatsapp.com/channel/0029VbCdZJm9cDDij5E37w34" target="_blank">📱 Suis-nous sur WhatsApp</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // CONFIGURATION SUPABASE
+        const SUPABASE_URL = "https://dgtkbwdgpudmzwukbyuu.supabase.co"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_be7xfwYmWcJKhk03KQ58oQ_Q8XxqAZZ";
+        
+        let clientSupabase = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Initialisation Supabase
+            if (typeof supabase !== 'undefined' && SUPABASE_URL !== "TA_SUPABASE_URL") {
+                clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+
+            // Gestion de la navigation
+            const tabs = [
+                { btn: 'btn-inscription', sec: 'sec-inscription' },
+                { btn: 'btn-resultats', sec: 'sec-resultats' },
+                { btn: 'btn-classement', sec: 'sec-classement' },
+                { btn: 'btn-credits', sec: 'sec-credits' }
+            ];
+
+            tabs.forEach(tab => {
+                const button = document.getElementById(tab.btn);
+                if (button) {
+                    button.addEventListener('click', () => {
+                        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                        document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
+                        
+                        document.getElementById(tab.sec).classList.add('active');
+                        button.classList.add('active');
+
+                        if (tab.sec === 'sec-classement' && clientSupabase) loadLeaderboard();
+                        if (tab.sec === 'sec-resultats' && clientSupabase) loadOpponents();
+                    });
+                }
+            });
+        });
+
+        // Inscription Joueur (Mise à jour avec la récupération des rangs)
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('auth-status');
+            
+            if (!clientSupabase) {
+                statusDiv.innerText = "❌ Clés Supabase non renseignées ou mal configurées.";
+                return;
+            }
+
+            statusDiv.innerText = "Enregistrement en cours...";
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            
+            // Récupération des rangs sélectionnés dans le formulaire
+            const rankRl = document.getElementById('rank-rl').value;
+            const rankFtn = document.getElementById('rank-ftn').value;
+            const rankBs = document.getElementById('rank-bs').value;
+
+            const { data, error } = await clientSupabase.auth.signUp({
+                email, 
+                password,
+                options: { 
+                    data: { 
+                        username: username,
+                        rank_rl: rankRl,
+                        rank_ftn: rankFtn,
+                        rank_bs: rankBs
+                    } 
+                }
+            });
+
+            if (error) {
+                statusDiv.innerText = "❌ Erreur : " + error.message;
+            } else {
+                statusDiv.innerText = "✅ Utilisateur créé ! Pensez à vérifier votre mail si la confirmation est activée.";
+            }
+        });
+
+        // Chargement Adversaires
+        async function loadOpponents() {
+            const select = document.getElementById('match-opponent');
+            const { data: players } = await clientSupabase.from('profiles').select('id, username');
+            if (players) {
+                select.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
+                players.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.username}</option>`; });
+            }
+        }
+
+        // Soumission et Analyse du Match (Edge Function)
+        document.getElementById('match-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('match-status');
+            
+            if (!clientSupabase) {
+                statusDiv.innerText = "❌ Supabase n'est pas initialisé.";
+                return;
+            }
+
+            const game = document.getElementById('match-game').value;
+            const opponentId = document.getElementById('match-opponent').value;
+            const fileInput = document.getElementById('match-file');
+            const file = fileInput.files[0];
+
+            if (!opponentId) {
+                alert("Veuillez sélectionner un adversaire.");
+                return;
+            }
+
+            statusDiv.innerText = "Envoi et analyse de la capture d'écran...";
+
+            try {
+                // 1. Récupérer l'utilisateur connecté
+                const { data: { user } } = await clientSupabase.auth.getUser();
+                if (!user) throw new Error("Vous devez être connecté pour envoyer un résultat.");
+
+                // 2. Upload de l'image dans le Storage Supabase (Bucket 'match-proofs')
+                const filePath = `matches/${Date.now()}_${file.name}`;
+                const { error: uploadError } = await clientSupabase.storage
+                    .from('match-proofs')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                // Récupérer l'URL publique de l'image
+                const { data: { publicUrl } } = clientSupabase.storage
+                    .from('match-proofs')
+                    .getPublicUrl(filePath);
+
+                // 3. Appel de l'Edge Function d'analyse
+                const { data: result, error: fnError } = await clientSupabase.functions.invoke('analyze-match', {
+                    body: {
+                        image_url: publicUrl,
+                        game: game,
+                        player_id: user.id,
+                        opponent_id: opponentId
+                    }
+                });
+
+                if (fnError) throw fnError;
+
+                statusDiv.innerText = "✅ Résultat analysé et points mis à jour avec succès !";
+                document.getElementById('match-form').reset();
+
+            } catch (err) {
+                statusDiv.innerText = "❌ Erreur : " + err.message;
+            }
+        });
+
+        // Chargement Classement
+        async function loadLeaderboard() {
+            const tbody = document.getElementById('leaderboard-body');
+            const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl, points_ftn, points_bs');
+
+            if (error) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur lors du chargement des données.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            players.forEach((p, index) => {
+                const total = (p.points_rl || 0) + (p.points_ftn || 0) + (p.points_bs || 0);
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>#${index + 1}</strong></td>
+                        <td>${p.username || 'Joueur Anonyme'}</td>
+                        <td>${p.points_rl || 0}</td>
+                        <td>${p.points_ftn || 0}</td>
+                        <td>${p.points_bs || 0}</td>
+                        <td><strong>${total}</strong></td>
+                    </tr>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
