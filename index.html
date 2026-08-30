@@ -859,7 +859,10 @@
                 const { data: { user } } = await clientSupabase.auth.getUser();
                 if (!user) throw new Error("Vous devez être connecté.");
 
-                const filePath = `matches/${Date.now()}_${file.name}`;
+                // Nettoyage du nom de fichier pour éviter les erreurs d'espaces et d'accents
+                const sanitizedFileName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_]/g, "_");
+                const filePath = `matches/${Date.now()}_${sanitizedFileName}`;
+
                 const { error: uploadError } = await clientSupabase.storage.from('match-proofs').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
