@@ -6,127 +6,368 @@
     <title>Valyor Esport — Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
         * { box-sizing: border-box; }
+        
         body {
-            background-color: #0a0a0a;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 0;
+            background-color: #06060c;
+            color: #f3f4f6;
+            font-family: 'Outfit', sans-serif;
+            margin: 0; 
+            padding: 0;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
         }
 
+        /* En-tête stylisé avec lueur */
         header {
             text-align: center;
-            padding: 20px 10px;
-            background-color: #111;
-            border-bottom: 3px solid transparent;
-            border-image: linear-gradient(to right, #2563eb, #7c3aed) 1;
+            padding: 25px 15px;
+            background: rgba(11, 11, 18, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
-        /* Le curseur change pour ne pas éveiller les soupçons, mais reste cliquable */
-        .logo { max-width: 120px; height: auto; margin-bottom: 10px; cursor: default; }
+
+        .logo { 
+            max-width: 110px; 
+            height: auto; 
+            margin-bottom: 10px; 
+            cursor: default; 
+            filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.4));
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .logo:hover {
+            transform: scale(1.08) rotate(2deg);
+        }
         
         h1, h2, h3 {
-            background: linear-gradient(45deg, #2563eb, #7c3aed);
+            background: linear-gradient(135deg, #3b82f6, #a855f7, #ec4899);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
+        h1 { font-size: 2.2rem; margin: 10px 0 20px 0; }
+        h2 { font-size: 1.6rem; margin-bottom: 20px; }
+
+        /* Navigation moderne */
         nav {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             margin-top: 15px;
             flex-wrap: wrap;
         }
+        
         .nav-btn {
-            background: linear-gradient(45deg, #1d4ed8, #6d28d9);
-            color: white;
-            border: none;
-            padding: 10px 18px;
+            background: rgba(25, 25, 40, 0.7);
+            color: #d1d5db;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            padding: 10px 20px;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 6px;
-        }
-        .nav-btn.active {
-            background: linear-gradient(45deg, #3b82f6, #a855f7);
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
 
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:hover {
+            border-color: #a855f7;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.25);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+
+        /* Container effet Verre (Glassmorphism) */
         .container {
             max-width: 900px;
-            margin: 30px auto;
-            padding: 25px;
-            background-color: #151515;
-            border-radius: 12px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(17, 17, 26, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+            animation: containerEntry 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .section { display: none; }
-        .section.active { display: block !important; }
+        @keyframes containerEntry {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Gestion des sections avec animation de fondu/glissement */
+        .section { 
+            display: none; 
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        
+        .section.active { 
+            display: block !important; 
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
         }
-        label { margin-bottom: 5px; font-weight: bold; color: #a78bfa; }
-        input, select {
-            padding: 10px;
-            background-color: #222;
-            color: white;
-            border: 1px solid #7c3aed;
-            border-radius: 6px;
-            font-size: 15px;
-            width: 100%;
+
+        label { 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #c084fc; 
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
         }
+
+        input, select {
+            padding: 12px 16px;
+            background-color: rgba(10, 10, 15, 0.8);
+            color: white;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            background-color: rgba(15, 15, 25, 0.9);
+        }
+
         .grid-3 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 20px;
         }
-        .submit-btn { width: 100%; margin-top: 15px; padding: 12px; font-size: 16px; }
 
+        .submit-btn { 
+            width: 100%; 
+            margin-top: 20px; 
+            padding: 14px; 
+            font-size: 16px; 
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 700;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.5);
+            filter: brightness(1.1);
+        }
+
+        /* Cartes de récompenses style Néon Gaming */
         .rewards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
         }
+
         .reward-card {
-            background-color: #0d0d18;
-            border: 1px solid #3b82f6;
-            border-radius: 8px;
-            padding: 15px;
+            background: linear-gradient(145deg, rgba(20, 20, 35, 0.6), rgba(10, 10, 20, 0.8));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 20px;
             text-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .reward-card .cost { font-size: 1.2em; font-weight: bold; color: #a855f7; margin-top: 10px; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #262626; font-size: 0.95em; }
-        th { color: #3b82f6; background-color: #0a0a0a; }
 
-        .social-links { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 20px; }
+        .reward-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .reward-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: #a855f7;
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.2);
+        }
+
+        .reward-card:hover::before {
+            opacity: 1;
+        }
+
+        .reward-card div:first-child {
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .reward-card .cost { 
+            font-size: 1.3rem; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #c084fc, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 15px; 
+        }
+        
+        /* Tableau design */
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            margin-top: 25px; 
+            overflow: hidden;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th, td { 
+            padding: 14px 18px; 
+            text-align: left; 
+            font-size: 0.95em; 
+        }
+
+        th { 
+            color: #60a5fa; 
+            background-color: rgba(10, 10, 18, 0.9); 
+            font-weight: 700;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        td {
+            background-color: rgba(20, 20, 30, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background 0.2s ease;
+        }
+
+        tr:hover td {
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Liens sociaux avec effet lumineux */
+        .social-links { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            align-items: center; 
+            margin-top: 25px; 
+        }
+
         .social-links a {
-            display: block; width: 80%; text-align: center; padding: 15px; border-radius: 8px;
-            text-decoration: none; color: white; font-weight: bold;
-            background-color: #222; border: 1px solid #7c3aed;
+            display: block; 
+            width: 80%; 
+            max-width: 400px;
+            text-align: center; 
+            padding: 16px; 
+            border-radius: 10px;
+            text-decoration: none; 
+            color: white; 
+            font-weight: bold;
+            background: rgba(20, 20, 30, 0.8); 
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.3));
+            border-color: #a855f7;
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
         }
         
-        .status-msg { text-align: center; margin-top: 15px; font-weight: bold; color: #60a5fa; }
+        .status-msg { 
+            text-align: center; 
+            margin-top: 18px; 
+            font-weight: 600; 
+            color: #60a5fa; 
+            letter-spacing: 0.3px;
+        }
 
-        /* Style spécifique pour la zone Admin (rouge pour bien la différencier) */
-        #sec-admin { border: 2px solid #ef4444; padding: 20px; border-radius: 10px; background-color: #2a0a0a; }
-        #sec-admin h2 { background: linear-gradient(45deg, #ef4444, #f97316); -webkit-background-clip: text; }
-        #sec-admin .submit-btn { background: linear-gradient(45deg, #ef4444, #b91c1c); }
+        /* Panel Admin Spécial */
+        #sec-admin { 
+            border: 1px solid rgba(239, 68, 68, 0.4); 
+            padding: 25px; 
+            border-radius: 12px; 
+            background: rgba(30, 10, 10, 0.6); 
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.15);
+        }
+        #sec-admin h2 { background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text; }
+        #sec-admin .submit-btn { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        #sec-admin input, #sec-admin select { border-color: rgba(239, 68, 68, 0.4); }
+        #sec-admin label { color: #fca5a5; }
+
+        /* Style spécifique pour l'input file */
+        input[type="file"]::file-selector-button {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            margin-right: 12px;
+            transition: filter 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            filter: brightness(1.15);
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <!-- Ajout de l'ID logo-trigger pour l'accès admin -->
         <img src="processed_image (59).png" alt="Valyor Logo" class="logo" id="logo-trigger">
         <h1>Plateforme Valyor Esport</h1>
         <nav>
@@ -174,7 +415,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="nav-btn submit-btn">S'inscrire (Vérification Tracker)</button>
+                <button type="submit" class="submit-btn">S'inscrire (Vérification Tracker)</button>
                 <div id="auth-status" class="status-msg"></div>
             </form>
         </div>
@@ -193,7 +434,7 @@
                     <label>Capture d'écran du score final :</label>
                     <input type="file" id="match-file" accept="image/*" required>
                 </div>
-                <button type="submit" class="nav-btn submit-btn">Envoyer et analyser le match</button>
+                <button type="submit" class="submit-btn">Envoyer et analyser le match</button>
             </form>
             <div id="match-status" class="status-msg"></div>
         </div>
@@ -211,7 +452,7 @@
                 <div class="reward-card"><div>Discord secret (RL, FTN)</div><div class="cost">3 000 pts</div></div>
             </div>
 
-            <h2 style="margin-top: 30px;">Classement Général Rocket League</h2>
+            <h2 style="margin-top: 40px;">Classement Général Rocket League</h2>
             <table>
                 <thead>
                     <tr>
@@ -239,7 +480,7 @@
         <!-- SECTION 5 : ADMIN (CACHÉE) -->
         <div id="sec-admin" class="section">
             <h2>🛠️ Panel Administrateur</h2>
-            <p style="text-align:center; color:#ccc;">Gestion manuelle des points de la communauté.</p>
+            <p style="text-align:center; color:#ccc; margin-bottom: 25px;">Gestion manuelle des points de la communauté.</p>
             
             <form id="admin-form">
                 <div class="form-group">
@@ -263,7 +504,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="nav-btn submit-btn">Appliquer la modification</button>
+                <button type="submit" class="submit-btn">Appliquer la modification</button>
                 <div id="admin-status" class="status-msg" style="color: #fca5a5;"></div>
             </form>
         </div>
@@ -276,14 +517,14 @@
         const SUPABASE_ANON_KEY = "sb_publishable_be7xfwYmWcJKhk03KQ58oQ_Q8XxqAZZ";
         
         let clientSupabase = null;
-        let playersData = []; // Pour stocker les joueurs côté admin
+        let playersData = []; 
 
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof supabase !== 'undefined') {
                 clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
 
-            // Gestion de la navigation standard
+            // Gestion de la navigation avec effet d'apparition fluide
             const tabs = [
                 { btn: 'btn-inscription', sec: 'sec-inscription' },
                 { btn: 'btn-resultats', sec: 'sec-resultats' },
@@ -298,7 +539,8 @@
                         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                         document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
                         
-                        document.getElementById(tab.sec).classList.add('active');
+                        const targetSection = document.getElementById(tab.sec);
+                        targetSection.classList.add('active');
                         button.classList.add('active');
 
                         if (tab.sec === 'sec-classement' && clientSupabase) loadLeaderboard();
@@ -316,28 +558,19 @@
             document.getElementById('logo-trigger').addEventListener('click', () => {
                 logoClicks++;
                 
-                // Réinitialise le compteur si on ne clique pas assez vite (2 secondes max)
                 clearTimeout(clickTimer);
                 clickTimer = setTimeout(() => { logoClicks = 0; }, 2000);
 
                 if (logoClicks === 5) {
-                    logoClicks = 0; // On reset
+                    logoClicks = 0;
                     
-                    // On demande le mot de passe
                     const pwd = prompt("ACCÈS SÉCURISÉ : Entrez la clé administrateur.");
                     
-                    // Sécurité : le mdp est encodé en base64 pour ne pas être lu directement dans le code source
-                    // "Wjd4UTlwTDJ2TQ==" correspond à "Z7xQ9pL2vM"
                     if (pwd && btoa(pwd) === "Wjd4UTlwTDJ2TQ==") {
-                        
-                        // Cacher toutes les autres sections
                         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                         document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
                         
-                        // Afficher le panel admin
                         document.getElementById('sec-admin').classList.add('active');
-                        
-                        // Charger la liste des joueurs pour l'admin
                         loadAdminPanel();
                     } else if (pwd) {
                         alert("Clé incorrecte. Accès refusé.");
@@ -356,7 +589,7 @@
             const { data, error } = await clientSupabase.from('profiles').select('id, username, points_rl').order('username');
             
             if (data) {
-                playersData = data; // On sauvegarde pour retrouver les points actuels plus tard
+                playersData = data; 
                 select.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
                 data.forEach(p => { 
                     select.innerHTML += `<option value="${p.id}">${p.username} (Actuel: ${p.points_rl || 0} pts)</option>`; 
@@ -376,15 +609,12 @@
 
             statusDiv.innerText = "Mise à jour en cours...";
 
-            // Récupérer les points actuels du joueur sélectionné
             const player = playersData.find(p => p.id === playerId);
             let currentPoints = player.points_rl || 0;
             let newPoints = action === 'add' ? currentPoints + amount : currentPoints - amount;
             
-            // Éviter les points négatifs
             if (newPoints < 0) newPoints = 0;
 
-            // Mise à jour dans Supabase
             const { error } = await clientSupabase
                 .from('profiles')
                 .update({ points_rl: newPoints })
@@ -395,7 +625,7 @@
             } else {
                 statusDiv.innerText = `✅ Succès ! Les points ont été mis à jour (${newPoints} pts).`;
                 document.getElementById('admin-form').reset();
-                loadAdminPanel(); // Rafraîchir la liste
+                loadAdminPanel(); 
             }
         });
 
@@ -417,7 +647,6 @@
             const username = document.getElementById('username').value;
             const rankRl = document.getElementById('rank-rl').value;
 
-            // 1. Barème de points selon le rang
             const rankPoints = {
                 "Non joué": 0,
                 "Bronze": 50,
@@ -430,10 +659,8 @@
                 "SSL": 1100
             };
 
-            // 2. Attribution des points correspondants
             const startingPoints = rankPoints[rankRl] || 0;
 
-            // 3. Création du compte avec les métadonnées
             const { data, error } = await clientSupabase.auth.signUp({
                 email, 
                 password, 
@@ -451,7 +678,6 @@
                 return;
             }
 
-            // 4. Forcer l'enregistrement des points dans la table 'profiles'
             if (data && data.user) {
                 await clientSupabase
                     .from('profiles')
