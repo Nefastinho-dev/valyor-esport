@@ -105,6 +105,19 @@
             box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
         }
 
+        /* Style pour les boutons verrouillés */
+        .nav-btn.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        .nav-btn.locked:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: rgba(255, 255, 255, 0.05);
+            color: #d1d5db;
+        }
+
         .nav-btn.logout-style {
             background: rgba(239, 68, 68, 0.2);
             border-color: rgba(239, 68, 68, 0.4);
@@ -394,9 +407,9 @@
         <nav>
             <button class="nav-btn active" id="btn-connexion">Connexion</button>
             <button class="nav-btn" id="btn-inscription">Inscription</button>
-            <button class="nav-btn" id="btn-resultats">Résultat de match</button>
-            <button class="nav-btn" id="btn-classement">Classement & Récompenses</button>
-            <button class="nav-btn" id="btn-credits">Crédits</button>
+            <button class="nav-btn locked" id="btn-resultats">Résultat de match</button>
+            <button class="nav-btn locked" id="btn-classement">Classement & Récompenses</button>
+            <button class="nav-btn locked" id="btn-credits">Crédits</button>
             <!-- Bouton Déconnexion caché par défaut, affiché si connecté -->
             <button class="nav-btn logout-style" id="btn-logout" style="display: none;">Déconnexion</button>
         </nav>
@@ -571,22 +584,33 @@
                 const { data: { session } } = await clientSupabase.auth.getSession();
                 if (session) {
                     onUserLoggedIn();
+                } else {
+                    onUserLoggedOut();
                 }
             }
 
-            // Gestion de la navigation
+            // Gestion de la navigation avec verrouillage conditionnel
             const tabs = [
-                { btn: 'btn-connexion', sec: 'sec-connexion' },
-                { btn: 'btn-inscription', sec: 'sec-inscription' },
-                { btn: 'btn-resultats', sec: 'sec-resultats' },
-                { btn: 'btn-classement', sec: 'sec-classement' },
-                { btn: 'btn-credits', sec: 'sec-credits' }
+                { btn: 'btn-connexion', sec: 'sec-connexion', restricted: false },
+                { btn: 'btn-inscription', sec: 'sec-inscription', restricted: false },
+                { btn: 'btn-resultats', sec: 'sec-resultats', restricted: true },
+                { btn: 'btn-classement', sec: 'sec-classement', restricted: true },
+                { btn: 'btn-credits', sec: 'sec-credits', restricted: true }
             ];
 
             tabs.forEach(tab => {
                 const button = document.getElementById(tab.btn);
                 if (button) {
-                    button.addEventListener('click', () => {
+                    button.addEventListener('click', async () => {
+                        // Vérifier si l'onglet est restreint
+                        if (tab.restricted && clientSupabase) {
+                            const { data: { session } } = await clientSupabase.auth.getSession();
+                            if (!session) {
+                                alert("🔒 Accès refusé : Veuillez vous connecter ou créer un compte pour accéder à cette section.");
+                                return;
+                            }
+                        }
+
                         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                         document.querySelectorAll('nav .nav-btn').forEach(b => {
                             if(b.id !== 'btn-logout') b.classList.remove('active');
@@ -636,21 +660,36 @@
             });
         });
 
-        // Fonction interface quand l'utilisateur est connecté
+        // Fonction interface quand l'utilisateur est connecté (Déverrouillage des onglets)
         function onUserLoggedIn() {
             const btnConnexion = document.getElementById('btn-connexion');
             btnConnexion.innerText = "Mon Compte";
             document.getElementById('btn-logout').style.display = 'inline-block';
+
+            // Retirer le verrouillage des boutons restreints
+            ['btn-resultats', 'btn-classement', 'btn-credits'].forEach(id => {
+                const btn = document.getElementById(id);
+                if(btn) btn.classList.remove('locked');
+            });
         }
 
-        // Fonction interface quand l'utilisateur est déconnecté
+        // Fonction interface quand l'utilisateur est déconnecté (Verrouillage des onglets)
         function onUserLoggedOut() {
             const btnConnexion = document.getElementById('btn-connexion');
             btnConnexion.innerText = "Connexion";
             document.getElementById('btn-logout').style.display = 'none';
-            // Rediriger vers l'onglet connexion
+
+            // Verrouiller les boutons restreints
+            ['btn-resultats', 'btn-classement', 'btn-credits'].forEach(id => {
+                const btn = document.getElementById(id);
+                if(btn) btn.classList.add('locked');
+            });
+
+            // Rediriger vers l'onglet connexion s'il n'y est pas déjà
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('nav .nav-btn').forEach(b => {
+                if(b.id !== 'btn-logout') b.classList.remove('active');
+            });
             document.getElementById('sec-connexion').classList.add('active');
             btnConnexion.classList.add('active');
         }
@@ -663,17 +702,8 @@
             const statusDiv = document.getElementById('login-status');
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            const rememberMe = document.getElementById('remember-me').checked;
 
             statusDiv.innerText = "Connexion en cours...";
-
-            // Configuration de la persistance de session Supabase selon "Rester connecté"
-            // Note: Par défaut, Supabase stocke le token. S'il n'est pas coché, on peut forcer le mode sessionStorage si désiré, 
-            // ou laisser la persistance standard gérée par Supabase.
-            if (!rememberMe) {
-                // Si non coché, on peut configurer le client pour stocker dans sessionStorage au lieu de localStorage
-                // (Optionnel selon la version du client, mais la gestion standard s'en sort bien)
-            }
 
             const { data, error } = await clientSupabase.auth.signInWithPassword({
                 email,
@@ -686,9 +716,9 @@
                 statusDiv.innerText = "✅ Connexion réussie ! Redirection...";
                 onUserLoggedIn();
                 setTimeout(() => {
-                    // Basculer vers l'onglet des résultats ou classement par défaut
+                    // Basculer directement vers le classement après connexion réussie
                     document.getElementById('btn-classement').click();
-                }, 1000);
+                }, 800);
             }
         });
 
