@@ -46,7 +46,7 @@
         .logo { 
             max-width: 60px; 
             height: auto; 
-            cursor: default; 
+            cursor: pointer; 
         }
 
         .header-title {
@@ -662,7 +662,7 @@
             let logoClicks = 0;
             let clickTimer;
 
-           document.getElementById('logo-trigger').addEventListener('click', () => {
+            document.getElementById('logo-trigger').addEventListener('click', () => {
                 logoClicks++;
                 clearTimeout(clickTimer);
                 clickTimer = setTimeout(() => { logoClicks = 0; }, 2000);
@@ -671,20 +671,19 @@
                     logoClicks = 0;
                     const pwd = prompt("ACCÈS SÉCURISÉ : Entrez la clé administrateur.");
                     if (pwd && btoa(pwd) === "Wjd4UTlwTDJ2TQ==") {
-                        // Désactive toutes les sections et enlève les classes active des boutons de navigation
                         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                         document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
                         
-                        // Affiche uniquement la section admin
                         document.getElementById('sec-admin').classList.add('active');
-                        loadAdminPanel(); // Charge la liste des joueurs pour le panel admin
+                        loadAdminPanel();
                     } else if (pwd) {
                         alert("Clé incorrecte. Accès refusé.");
                     }
                 }
             });
+        });
 
-            function onUserLoggedIn() {
+        function onUserLoggedIn() {
             document.getElementById('btn-connexion').style.display = 'none';
             document.getElementById('btn-inscription').style.display = 'none';
 
