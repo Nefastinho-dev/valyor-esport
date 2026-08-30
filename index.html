@@ -419,6 +419,12 @@
         #sec-admin h2 { background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text; }
         #sec-admin .submit-btn { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
 
+        .admin-subtab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
         input[type="file"]::file-selector-button {
             background: linear-gradient(135deg, #2563eb, #7c3aed);
             color: white;
@@ -725,33 +731,105 @@
 
         <div id="sec-admin" class="section">
             <h2>🛠️ Panel Administrateur</h2>
-            <p style="text-align:center; color:#ccc; margin-bottom: 25px;">Gestion manuelle des comptes et des points de la communauté.</p>
+            <p style="text-align:center; color:#ccc; margin-bottom: 20px;">Gestion manuelle des points et modification des profils utilisateurs.</p>
             
-            <form id="admin-form">
-                <div class="form-group">
-                    <label>Sélectionner le joueur :</label>
-                    <select id="admin-player" required>
-                        <option value="">-- Chargement des joueurs --</option>
-                    </select>
-                </div>
-                
-                <div class="grid-3">
+            <div class="admin-subtab-container">
+                <button type="button" class="nav-btn active" id="subtab-admin-points" style="flex:1;">Gestion des Points</button>
+                <button type="button" class="nav-btn" id="subtab-admin-profiles" style="flex:1;">Modifier un Profil</button>
+            </div>
+
+            <!-- Sous-section Gestion des points -->
+            <div id="subcontent-admin-points">
+                <form id="admin-form">
                     <div class="form-group">
-                        <label>Action :</label>
-                        <select id="admin-action" required>
-                            <option value="add">Ajouter des points (+)</option>
-                            <option value="remove">Retirer des points (-)</option>
+                        <label>Sélectionner le joueur :</label>
+                        <select id="admin-player" required>
+                            <option value="">-- Chargement des joueurs --</option>
                         </select>
                     </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>Nombre de points :</label>
-                        <input type="number" id="admin-points" min="1" required>
+                    
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Action :</label>
+                            <select id="admin-action" required>
+                                <option value="add">Ajouter des points (+)</option>
+                                <option value="remove">Retirer des points (-)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Nombre de points :</label>
+                            <input type="number" id="admin-points" min="1" required>
+                        </div>
                     </div>
-                </div>
 
-                <button type="submit" class="submit-btn">Appliquer la modification</button>
-                <div id="admin-status" class="status-msg" style="color: #fca5a5;"></div>
-            </form>
+                    <button type="submit" class="submit-btn">Appliquer la modification</button>
+                    <div id="admin-status" class="status-msg" style="color: #fca5a5;"></div>
+                </form>
+            </div>
+
+            <!-- Sous-section Modification des profils -->
+            <div id="subcontent-admin-profiles" style="display: none;">
+                <form id="admin-profile-form">
+                    <div class="form-group">
+                        <label>Sélectionner le profil à modifier :</label>
+                        <select id="admin-edit-player" required>
+                            <option value="">-- Chargement des joueurs --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nouveau Pseudo :</label>
+                        <input type="text" id="admin-edit-username" required>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Peak Rank Rocket League :</label>
+                            <select id="admin-edit-rank-rl">
+                                <option value="Non joué">Non joué</option>
+                                <option value="Bronze">Bronze</option>
+                                <option value="Argent">Argent</option>
+                                <option value="Or">Or</option>
+                                <option value="Platine">Platine</option>
+                                <option value="Diamant">Diamant</option>
+                                <option value="Champion">Champion</option>
+                                <option value="GC">GC</option>
+                                <option value="SSL">SSL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rang Brawl Stars :</label>
+                            <select id="admin-edit-rank-bs">
+                                <option value="Non joué">Non joué</option>
+                                <option value="Bronze">Bronze</option>
+                                <option value="Argent">Argent</option>
+                                <option value="Or">Or</option>
+                                <option value="Diamant">Diamant</option>
+                                <option value="Mythique">Mythique</option>
+                                <option value="Légendaire">Légendaire</option>
+                                <option value="Maître">Maître</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rang Fortnite :</label>
+                            <select id="admin-edit-rank-fn">
+                                <option value="Non joué">Non joué</option>
+                                <option value="Bronze">Bronze</option>
+                                <option value="Argent">Argent</option>
+                                <option value="Or">Or</option>
+                                <option value="Platine">Platine</option>
+                                <option value="Diamant">Diamant</option>
+                                <option value="Elite">Elite</option>
+                                <option value="Champion">Champion</option>
+                                <option value="Unreal">Unreal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Sauvegarder les modifications</button>
+                    <div id="admin-profile-status" class="status-msg" style="color: #fca5a5;"></div>
+                </form>
+            </div>
         </div>
 
         <div id="sec-credits" class="section">
@@ -832,6 +910,21 @@
                 document.getElementById('subtab-soumettre').classList.remove('active');
                 document.getElementById('subcontent-historique').style.display = 'block';
                 document.getElementById('subcontent-soumettre').style.display = 'none';
+            });
+
+            // Sous-onglets Panel Admin
+            document.getElementById('subtab-admin-points').addEventListener('click', () => {
+                document.getElementById('subtab-admin-points').classList.add('active');
+                document.getElementById('subtab-admin-profiles').classList.remove('active');
+                document.getElementById('subcontent-admin-points').style.display = 'block';
+                document.getElementById('subcontent-admin-profiles').style.display = 'none';
+            });
+
+            document.getElementById('subtab-admin-profiles').addEventListener('click', () => {
+                document.getElementById('subtab-admin-profiles').classList.add('active');
+                document.getElementById('subtab-admin-points').classList.remove('active');
+                document.getElementById('subcontent-admin-profiles').style.display = 'block';
+                document.getElementById('subcontent-admin-points').style.display = 'none';
             });
 
             document.getElementById('btn-logout').addEventListener('click', async () => {
@@ -984,19 +1077,37 @@
         });
 
         async function loadAdminPanel() {
-            const select = document.getElementById('admin-player');
-            select.innerHTML = '<option value="">-- Chargement... --</option>';
+            const selectPoints = document.getElementById('admin-player');
+            const selectEdit = document.getElementById('admin-edit-player');
             
-            const { data, error } = await clientSupabase.from('profiles').select('id, username, points_rl').order('username');
+            selectPoints.innerHTML = '<option value="">-- Chargement... --</option>';
+            selectEdit.innerHTML = '<option value="">-- Chargement... --</option>';
+            
+            const { data, error } = await clientSupabase.from('profiles').select('id, username, points_rl, rank_rl, rank_bs, rank_fn').order('username');
             
             if (data) {
                 playersData = data; 
-                select.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
+                selectPoints.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
+                selectEdit.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
+                
                 data.forEach(p => { 
-                    select.innerHTML += `<option value="${p.id}">${p.username} (Actuel: ${p.points_rl || 0} pts)</option>`;
+                    selectPoints.innerHTML += `<option value="${p.id}">${p.username} (Actuel: ${p.points_rl || 0} pts)</option>`;
+                    selectEdit.innerHTML += `<option value="${p.id}">${p.username}</option>`;
                 });
             }
         }
+
+        // Écouteur de sélection pour le formulaire d'édition de profil
+        document.getElementById('admin-edit-player').addEventListener('change', (e) => {
+            const selectedId = e.target.value;
+            const player = playersData.find(p => p.id === selectedId);
+            if (player) {
+                document.getElementById('admin-edit-username').value = player.username || '';
+                document.getElementById('admin-edit-rank-rl').value = player.rank_rl || 'Non joué';
+                document.getElementById('admin-edit-rank-bs').value = player.rank_bs || 'Non joué';
+                document.getElementById('admin-edit-rank-fn').value = player.rank_fn || 'Non joué';
+            }
+        });
 
         document.getElementById('admin-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1024,6 +1135,40 @@
                 statusDiv.innerText = `✅ Succès ! Points mis à jour (${newPoints} pts).`;
                 document.getElementById('admin-form').reset();
                 loadAdminPanel(); 
+            }
+        });
+
+        document.getElementById('admin-profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('admin-profile-status');
+            const playerId = document.getElementById('admin-edit-player').value;
+            const newUsername = document.getElementById('admin-edit-username').value;
+            const newRankRl = document.getElementById('admin-edit-rank-rl').value;
+            const newRankBs = document.getElementById('admin-edit-rank-bs').value;
+            const newRankFn = document.getElementById('admin-edit-rank-fn').value;
+
+            if (!playerId) {
+                statusDiv.innerText = "❌ Veuillez sélectionner un joueur.";
+                return;
+            }
+
+            statusDiv.innerText = "Mise à jour du profil...";
+
+            const { error } = await clientSupabase
+                .from('profiles')
+                .update({ 
+                    username: newUsername,
+                    rank_rl: newRankRl,
+                    rank_bs: newRankBs,
+                    rank_fn: newRankFn
+                })
+                .eq('id', playerId);
+
+            if (error) {
+                statusDiv.innerText = "❌ Erreur : " + error.message;
+            } else {
+                statusDiv.innerText = "✅ Profil mis à jour avec succès !";
+                loadAdminPanel();
             }
         });
 
