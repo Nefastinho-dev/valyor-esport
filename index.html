@@ -403,7 +403,7 @@
         // FONCTIONS STANDARDS DU RESTE DU SITE
         // ----------------------------------------------------
 
-        // Inscription Joueur
+        // Inscription Joueur avec Barème de Points Automatique
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('auth-status');
@@ -411,17 +411,56 @@
             if (!clientSupabase) return;
 
             statusDiv.innerText = "Enregistrement en cours...";
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const username = document.getElementById('username').value;
             const rankRl = document.getElementById('rank-rl').value;
 
+            // 1. Barème de points selon le rang
+            const rankPoints = {
+                "Non joué": 0,
+                "Bronze": 50,
+                "Argent": 80,
+                "Or": 150,
+                "Platine": 230,
+                "Diamant": 325,
+                "Champion": 500,
+                "GC": 850,
+                "SSL": 1100
+            };
+
+            // 2. Attribution des points correspondants
+            const startingPoints = rankPoints[rankRl] || 0;
+
+            // 3. Création du compte avec les métadonnées
             const { data, error } = await clientSupabase.auth.signUp({
-                email, password, options: { data: { username: username, rank_rl: rankRl } }
+                email, 
+                password, 
+                options: { 
+                    data: { 
+                        username: username, 
+                        rank_rl: rankRl,
+                        points_rl: startingPoints 
+                    } 
+                }
             });
 
-            if (error) statusDiv.innerText = "❌ Erreur : " + error.message;
-            else statusDiv.innerText = "✅ Utilisateur créé !";
+            if (error) {
+                statusDiv.innerText = "❌ Erreur : " + error.message;
+                return;
+            }
+
+            // 4. Forcer l'enregistrement des points dans la table 'profiles'
+            if (data && data.user) {
+                await clientSupabase
+                    .from('profiles')
+                    .update({ points_rl: startingPoints })
+                    .eq('id', data.user.id);
+            }
+
+            statusDiv.innerText = `✅ Utilisateur créé ! Bonus de bienvenue : ${startingPoints} pts.`;
+            document.getElementById('signup-form').reset();
         });
 
         // Chargement Adversaires pour Résultat
