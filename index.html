@@ -368,18 +368,21 @@
         
         table { 
             width: 100%; 
+            max-width: 100%;
             border-collapse: separate; 
             border-spacing: 0; 
-            margin-top: 25px; 
+            margin-top: 20px; 
             overflow: hidden;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            table-layout: auto;
         }
 
         th, td { 
-            padding: 14px 18px; 
+            padding: 10px 12px; 
             text-align: left; 
-            font-size: 0.95em; 
+            font-size: 0.85em; 
+            white-space: nowrap;
         }
 
         th { 
@@ -841,7 +844,6 @@
         });
 
         async function checkUserAdminStatus(user) {
-            // Définissez ici la logique ou l'email admin (ex: kstorpaslefaut@gmail.com ou via métadata/table)
             const adminEmails = ["kstorpaslefaut@gmail.com"];
             const isAdmin = adminEmails.includes(user.email) || user.user_metadata?.is_admin === true;
             
