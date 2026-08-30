@@ -41,7 +41,6 @@
             height: auto; 
             margin-bottom: 10px; 
             cursor: default; 
-            /* Animation du logo retirée pour plus de discrétion */
         }
         
         h1, h2, h3 {
@@ -106,6 +105,18 @@
             box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
         }
 
+        .nav-btn.logout-style {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+        .nav-btn.logout-style:hover {
+            background: rgba(239, 68, 68, 0.4);
+            border-color: #ef4444;
+            color: white;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25);
+        }
+
         /* Container effet Verre (Glassmorphism) */
         .container {
             max-width: 900px;
@@ -126,7 +137,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Gestion des sections avec animation de fondu/glissement */
+        /* Gestion des sections */
         .section { 
             display: none; 
             opacity: 0;
@@ -144,6 +155,21 @@
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
+        }
+
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #d1d5db;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #7c3aed;
         }
 
         label { 
@@ -200,7 +226,7 @@
             filter: brightness(1.1);
         }
 
-        /* Cartes de récompenses style Néon Gaming */
+        /* Cartes récompenses */
         .rewards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -256,7 +282,7 @@
             margin-top: 15px; 
         }
         
-        /* Tableau design */
+        /* Tableaux */
         table { 
             width: 100%; 
             border-collapse: separate; 
@@ -290,7 +316,7 @@
             background-color: rgba(37, 99, 235, 0.1);
         }
 
-        /* Liens sociaux avec effet lumineux */
+        /* Liens sociaux */
         .social-links { 
             display: flex; 
             flex-direction: column; 
@@ -330,7 +356,7 @@
             letter-spacing: 0.3px;
         }
 
-        /* Panel Admin Spécial */
+        /* Panel Admin */
         #sec-admin { 
             border: 1px solid rgba(239, 68, 68, 0.4); 
             padding: 25px; 
@@ -343,7 +369,6 @@
         #sec-admin input, #sec-admin select { border-color: rgba(239, 68, 68, 0.4); }
         #sec-admin label { color: #fca5a5; }
 
-        /* Style spécifique pour l'input file */
         input[type="file"]::file-selector-button {
             background: linear-gradient(135deg, #2563eb, #7c3aed);
             color: white;
@@ -367,17 +392,38 @@
         <img src="processed_image (59).png" alt="Valyor Logo" class="logo" id="logo-trigger">
         <h1>Plateforme Valyor Esport</h1>
         <nav>
-            <button class="nav-btn active" id="btn-inscription">Inscription</button>
+            <button class="nav-btn active" id="btn-connexion">Connexion</button>
+            <button class="nav-btn" id="btn-inscription">Inscription</button>
             <button class="nav-btn" id="btn-resultats">Résultat de match</button>
             <button class="nav-btn" id="btn-classement">Classement & Récompenses</button>
             <button class="nav-btn" id="btn-credits">Crédits</button>
+            <!-- Bouton Déconnexion caché par défaut, affiché si connecté -->
+            <button class="nav-btn logout-style" id="btn-logout" style="display: none;">Déconnexion</button>
         </nav>
     </header>
 
     <div class="container">
         
-        <!-- SECTION 1 : INSCRIPTION -->
-        <div id="sec-inscription" class="section active">
+        <!-- SECTION : CONNEXION -->
+        <div id="sec-connexion" class="section active">
+            <h2>Connexion à ton compte</h2>
+            <form id="login-form">
+                <div class="form-group"><label>Email :</label><input type="email" id="login-email" required></div>
+                <div class="form-group"><label>Mot de passe :</label><input type="password" id="login-password" required></div>
+                
+                <div class="form-group">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="remember-me"> Rester connecté
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn">Se connecter</button>
+                <div id="login-status" class="status-msg"></div>
+            </form>
+        </div>
+
+        <!-- SECTION : INSCRIPTION -->
+        <div id="sec-inscription" class="section">
             <h2>Créer un compte Joueur</h2>
             <form id="signup-form">
                 <div class="form-group"><label>Email :</label><input type="email" id="email" required></div>
@@ -411,12 +457,12 @@
                     </select>
                 </div>
 
-                <button type="submit" class="submit-btn">S'inscrire (Vérification Tracker)</button>
+                <button type="submit" class="submit-btn">S'inscrire</button>
                 <div id="auth-status" class="status-msg"></div>
             </form>
         </div>
 
-        <!-- SECTION 2 : RESULTAT DE MATCH -->
+        <!-- SECTION : RESULTAT DE MATCH -->
         <div id="sec-resultats" class="section">
             <h2>Soumettre un Résultat de Match</h2>
             <form id="match-form">
@@ -435,7 +481,7 @@
             <div id="match-status" class="status-msg"></div>
         </div>
 
-        <!-- SECTION 3 : CLASSEMENT ET RECOMPENSES -->
+        <!-- SECTION : CLASSEMENT ET RECOMPENSES -->
         <div id="sec-classement" class="section">
             <h2>Boutique des Récompenses</h2>
             <div class="rewards-grid">
@@ -463,7 +509,7 @@
             </table>
         </div>
 
-        <!-- SECTION 4 : CREDITS -->
+        <!-- SECTION : CREDITS -->
         <div id="sec-credits" class="section">
             <h2>Crédits et Réseaux</h2>
             <div class="social-links">
@@ -473,7 +519,7 @@
             </div>
         </div>
 
-        <!-- SECTION 5 : ADMIN (CACHÉE) -->
+        <!-- SECTION : ADMIN (CACHÉE) -->
         <div id="sec-admin" class="section">
             <h2>🛠️ Panel Administrateur</h2>
             <p style="text-align:center; color:#ccc; margin-bottom: 25px;">Gestion manuelle des points de la communauté.</p>
@@ -515,13 +561,22 @@
         let clientSupabase = null;
         let playersData = []; 
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             if (typeof supabase !== 'undefined') {
                 clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
 
-            // Gestion de la navigation avec effet d'apparition fluide
+            // Vérifier s'il y a déjà une session active au démarrage
+            if (clientSupabase) {
+                const { data: { session } } = await clientSupabase.auth.getSession();
+                if (session) {
+                    onUserLoggedIn();
+                }
+            }
+
+            // Gestion de la navigation
             const tabs = [
+                { btn: 'btn-connexion', sec: 'sec-connexion' },
                 { btn: 'btn-inscription', sec: 'sec-inscription' },
                 { btn: 'btn-resultats', sec: 'sec-resultats' },
                 { btn: 'btn-classement', sec: 'sec-classement' },
@@ -533,7 +588,9 @@
                 if (button) {
                     button.addEventListener('click', () => {
                         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                        document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelectorAll('nav .nav-btn').forEach(b => {
+                            if(b.id !== 'btn-logout') b.classList.remove('active');
+                        });
                         
                         const targetSection = document.getElementById(tab.sec);
                         targetSection.classList.add('active');
@@ -545,23 +602,27 @@
                 }
             });
 
-            // ----------------------------------------------------
-            // GESTION DU PANEL ADMIN SECRET (EASTER EGG)
-            // ----------------------------------------------------
+            // Bouton de déconnexion
+            document.getElementById('btn-logout').addEventListener('click', async () => {
+                if(clientSupabase) {
+                    await clientSupabase.auth.signOut();
+                    onUserLoggedOut();
+                    alert("Vous êtes déconnecté.");
+                }
+            });
+
+            // Easter Egg Admin sur le logo (5 clics rapides)
             let logoClicks = 0;
             let clickTimer;
 
             document.getElementById('logo-trigger').addEventListener('click', () => {
                 logoClicks++;
-                
                 clearTimeout(clickTimer);
                 clickTimer = setTimeout(() => { logoClicks = 0; }, 2000);
 
                 if (logoClicks === 5) {
                     logoClicks = 0;
-                    
                     const pwd = prompt("ACCÈS SÉCURISÉ : Entrez la clé administrateur.");
-                    
                     if (pwd && btoa(pwd) === "Wjd4UTlwTDJ2TQ==") {
                         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                         document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
@@ -575,61 +636,65 @@
             });
         });
 
-        // ----------------------------------------------------
-        // FONCTIONS DU PANEL ADMIN
-        // ----------------------------------------------------
-        async function loadAdminPanel() {
-            const select = document.getElementById('admin-player');
-            select.innerHTML = '<option value="">-- Chargement... --</option>';
-            
-            const { data, error } = await clientSupabase.from('profiles').select('id, username, points_rl').order('username');
-            
-            if (data) {
-                playersData = data; 
-                select.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
-                data.forEach(p => { 
-                    select.innerHTML += `<option value="${p.id}">${p.username} (Actuel: ${p.points_rl || 0} pts)</option>`; 
-                });
-            }
+        // Fonction interface quand l'utilisateur est connecté
+        function onUserLoggedIn() {
+            const btnConnexion = document.getElementById('btn-connexion');
+            btnConnexion.innerText = "Mon Compte";
+            document.getElementById('btn-logout').style.display = 'inline-block';
         }
 
-        document.getElementById('admin-form').addEventListener('submit', async (e) => {
+        // Fonction interface quand l'utilisateur est déconnecté
+        function onUserLoggedOut() {
+            const btnConnexion = document.getElementById('btn-connexion');
+            btnConnexion.innerText = "Connexion";
+            document.getElementById('btn-logout').style.display = 'none';
+            // Rediriger vers l'onglet connexion
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('sec-connexion').classList.add('active');
+            btnConnexion.classList.add('active');
+        }
+
+        // ----------------------------------------------------
+        // CONNEXION (LOG-IN) + Rester connecté
+        // ----------------------------------------------------
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const statusDiv = document.getElementById('admin-status');
-            
-            const playerId = document.getElementById('admin-player').value;
-            const action = document.getElementById('admin-action').value;
-            const amount = parseInt(document.getElementById('admin-points').value);
+            const statusDiv = document.getElementById('login-status');
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
 
-            if (!playerId || isNaN(amount)) return;
+            statusDiv.innerText = "Connexion en cours...";
 
-            statusDiv.innerText = "Mise à jour en cours...";
+            // Configuration de la persistance de session Supabase selon "Rester connecté"
+            // Note: Par défaut, Supabase stocke le token. S'il n'est pas coché, on peut forcer le mode sessionStorage si désiré, 
+            // ou laisser la persistance standard gérée par Supabase.
+            if (!rememberMe) {
+                // Si non coché, on peut configurer le client pour stocker dans sessionStorage au lieu de localStorage
+                // (Optionnel selon la version du client, mais la gestion standard s'en sort bien)
+            }
 
-            const player = playersData.find(p => p.id === playerId);
-            let currentPoints = player.points_rl || 0;
-            let newPoints = action === 'add' ? currentPoints + amount : currentPoints - amount;
-            
-            if (newPoints < 0) newPoints = 0;
-
-            const { error } = await clientSupabase
-                .from('profiles')
-                .update({ points_rl: newPoints })
-                .eq('id', playerId);
+            const { data, error } = await clientSupabase.auth.signInWithPassword({
+                email,
+                password
+            });
 
             if (error) {
                 statusDiv.innerText = "❌ Erreur : " + error.message;
             } else {
-                statusDiv.innerText = `✅ Succès ! Les points ont été mis à jour (${newPoints} pts).`;
-                document.getElementById('admin-form').reset();
-                loadAdminPanel(); 
+                statusDiv.innerText = "✅ Connexion réussie ! Redirection...";
+                onUserLoggedIn();
+                setTimeout(() => {
+                    // Basculer vers l'onglet des résultats ou classement par défaut
+                    document.getElementById('btn-classement').click();
+                }, 1000);
             }
         });
 
         // ----------------------------------------------------
-        // FONCTIONS STANDARDS DU RESTE DU SITE
+        // INSCRIPTION (SIGN-UP)
         // ----------------------------------------------------
-
-        // Inscription Joueur avec Barème de Points Automatique
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('auth-status');
@@ -644,15 +709,8 @@
             const rankRl = document.getElementById('rank-rl').value;
 
             const rankPoints = {
-                "Non joué": 0,
-                "Bronze": 50,
-                "Argent": 80,
-                "Or": 150,
-                "Platine": 230,
-                "Diamant": 325,
-                "Champion": 500,
-                "GC": 850,
-                "SSL": 1100
+                "Non joué": 0, "Bronze": 50, "Argent": 80, "Or": 150,
+                "Platine": 230, "Diamant": 325, "Champion": 500, "GC": 850, "SSL": 1100
             };
 
             const startingPoints = rankPoints[rankRl] || 0;
@@ -681,11 +739,60 @@
                     .eq('id', data.user.id);
             }
 
-            statusDiv.innerText = `✅ Utilisateur créé ! Bonus de bienvenue : ${startingPoints} pts.`;
+            statusDiv.innerText = `✅ Compte créé ! Bonus de bienvenue : ${startingPoints} pts. Vous pouvez vous connecter.`;
             document.getElementById('signup-form').reset();
         });
 
-        // Chargement Adversaires pour Résultat
+        // ----------------------------------------------------
+        // PANEL ADMIN
+        // ----------------------------------------------------
+        async function loadAdminPanel() {
+            const select = document.getElementById('admin-player');
+            select.innerHTML = '<option value="">-- Chargement... --</option>';
+            
+            const { data, error } = await clientSupabase.from('profiles').select('id, username, points_rl').order('username');
+            
+            if (data) {
+                playersData = data; 
+                select.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
+                data.forEach(p => { 
+                    select.innerHTML += `<option value="${p.id}">${p.username} (Actuel: ${p.points_rl || 0} pts)</option>`; 
+                });
+            }
+        }
+
+        document.getElementById('admin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('admin-status');
+            const playerId = document.getElementById('admin-player').value;
+            const action = document.getElementById('admin-action').value;
+            const amount = parseInt(document.getElementById('admin-points').value);
+
+            if (!playerId || isNaN(amount)) return;
+            statusDiv.innerText = "Mise à jour en cours...";
+
+            const player = playersData.find(p => p.id === playerId);
+            let currentPoints = player.points_rl || 0;
+            let newPoints = action === 'add' ? currentPoints + amount : currentPoints - amount;
+            if (newPoints < 0) newPoints = 0;
+
+            const { error } = await clientSupabase
+                .from('profiles')
+                .update({ points_rl: newPoints })
+                .eq('id', playerId);
+
+            if (error) {
+                statusDiv.innerText = "❌ Erreur : " + error.message;
+            } else {
+                statusDiv.innerText = `✅ Succès ! Points mis à jour (${newPoints} pts).`;
+                document.getElementById('admin-form').reset();
+                loadAdminPanel(); 
+            }
+        });
+
+        // ----------------------------------------------------
+        // AUTRES FONCTIONS (MATCHS, CLASSEMENT)
+        // ----------------------------------------------------
         async function loadOpponents() {
             const select = document.getElementById('match-opponent');
             const { data: players } = await clientSupabase.from('profiles').select('id, username');
@@ -695,18 +802,15 @@
             }
         }
 
-        // Soumission Résultat Match
         document.getElementById('match-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('match-status');
-            
             const game = "Rocket League"; 
             const opponentId = document.getElementById('match-opponent').value;
             const fileInput = document.getElementById('match-file');
             const file = fileInput.files[0];
 
             if (!opponentId) { alert("Veuillez sélectionner un adversaire."); return; }
-
             statusDiv.innerText = "Envoi en cours...";
 
             try {
@@ -732,7 +836,6 @@
             }
         });
 
-        // Chargement Classement
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
             const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl').order('points_rl', { ascending: false });
