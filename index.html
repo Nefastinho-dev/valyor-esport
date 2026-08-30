@@ -21,7 +21,9 @@
             border-bottom: 3px solid transparent;
             border-image: linear-gradient(to right, #2563eb, #7c3aed) 1;
         }
-        .logo { max-width: 120px; height: auto; margin-bottom: 10px; }
+        /* Le curseur change pour ne pas éveiller les soupçons, mais reste cliquable */
+        .logo { max-width: 120px; height: auto; margin-bottom: 10px; cursor: default; }
+        
         h1, h2, h3 {
             background: linear-gradient(45deg, #2563eb, #7c3aed);
             -webkit-background-clip: text;
@@ -114,12 +116,18 @@
         }
         
         .status-msg { text-align: center; margin-top: 15px; font-weight: bold; color: #60a5fa; }
+
+        /* Style spécifique pour la zone Admin (rouge pour bien la différencier) */
+        #sec-admin { border: 2px solid #ef4444; padding: 20px; border-radius: 10px; background-color: #2a0a0a; }
+        #sec-admin h2 { background: linear-gradient(45deg, #ef4444, #f97316); -webkit-background-clip: text; }
+        #sec-admin .submit-btn { background: linear-gradient(45deg, #ef4444, #b91c1c); }
     </style>
 </head>
 <body>
 
     <header>
-        <img src="processed_image (59).png" alt="Valyor Logo" class="logo">
+        <!-- Ajout de l'ID logo-trigger pour l'accès admin -->
+        <img src="processed_image (59).png" alt="Valyor Logo" class="logo" id="logo-trigger">
         <h1>Plateforme Valyor Esport</h1>
         <nav>
             <button class="nav-btn active" id="btn-inscription">Inscription</button>
@@ -175,7 +183,6 @@
         <div id="sec-resultats" class="section">
             <h2>Soumettre un Résultat de Match</h2>
             <form id="match-form">
-                <!-- Le champ de sélection du jeu a été retiré puisque la plateforme est 100% Rocket League -->
                 <div class="form-group">
                     <label>Adversaire affronté :</label>
                     <select id="match-opponent">
@@ -229,6 +236,38 @@
             </div>
         </div>
 
+        <!-- SECTION 5 : ADMIN (CACHÉE) -->
+        <div id="sec-admin" class="section">
+            <h2>🛠️ Panel Administrateur</h2>
+            <p style="text-align:center; color:#ccc;">Gestion manuelle des points de la communauté.</p>
+            
+            <form id="admin-form">
+                <div class="form-group">
+                    <label>Sélectionner le joueur :</label>
+                    <select id="admin-player" required>
+                        <option value="">-- Chargement des joueurs --</option>
+                    </select>
+                </div>
+                
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Action :</label>
+                        <select id="admin-action" required>
+                            <option value="add">Ajouter (+)</option>
+                            <option value="remove">Retirer (-)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Nombre de points :</label>
+                        <input type="number" id="admin-points" min="1" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="nav-btn submit-btn">Appliquer la modification</button>
+                <div id="admin-status" class="status-msg" style="color: #fca5a5;"></div>
+            </form>
+        </div>
+
     </div>
 
     <script>
@@ -237,14 +276,14 @@
         const SUPABASE_ANON_KEY = "sb_publishable_be7xfwYmWcJKhk03KQ58oQ_Q8XxqAZZ";
         
         let clientSupabase = null;
+        let playersData = []; // Pour stocker les joueurs côté admin
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Initialisation Supabase
-            if (typeof supabase !== 'undefined' && SUPABASE_URL !== "TA_SUPABASE_URL") {
+            if (typeof supabase !== 'undefined') {
                 clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
 
-            // Gestion de la navigation
+            // Gestion de la navigation standard
             const tabs = [
                 { btn: 'btn-inscription', sec: 'sec-inscription' },
                 { btn: 'btn-resultats', sec: 'sec-resultats' },
@@ -267,45 +306,125 @@
                     });
                 }
             });
+
+            // ----------------------------------------------------
+            // GESTION DU PANEL ADMIN SECRET (EASTER EGG)
+            // ----------------------------------------------------
+            let logoClicks = 0;
+            let clickTimer;
+
+            document.getElementById('logo-trigger').addEventListener('click', () => {
+                logoClicks++;
+                
+                // Réinitialise le compteur si on ne clique pas assez vite (2 secondes max)
+                clearTimeout(clickTimer);
+                clickTimer = setTimeout(() => { logoClicks = 0; }, 2000);
+
+                if (logoClicks === 5) {
+                    logoClicks = 0; // On reset
+                    
+                    // On demande le mot de passe
+                    const pwd = prompt("ACCÈS SÉCURISÉ : Entrez la clé administrateur.");
+                    
+                    // Sécurité : le mdp est encodé en base64 pour ne pas être lu directement dans le code source
+                    // "Wjd4UTlwTDJ2TQ==" correspond à "Z7xQ9pL2vM"
+                    if (pwd && btoa(pwd) === "Wjd4UTlwTDJ2TQ==") {
+                        
+                        // Cacher toutes les autres sections
+                        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                        document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
+                        
+                        // Afficher le panel admin
+                        document.getElementById('sec-admin').classList.add('active');
+                        
+                        // Charger la liste des joueurs pour l'admin
+                        loadAdminPanel();
+                    } else if (pwd) {
+                        alert("Clé incorrecte. Accès refusé.");
+                    }
+                }
+            });
         });
+
+        // ----------------------------------------------------
+        // FONCTIONS DU PANEL ADMIN
+        // ----------------------------------------------------
+        async function loadAdminPanel() {
+            const select = document.getElementById('admin-player');
+            select.innerHTML = '<option value="">-- Chargement... --</option>';
+            
+            const { data, error } = await clientSupabase.from('profiles').select('id, username, points_rl').order('username');
+            
+            if (data) {
+                playersData = data; // On sauvegarde pour retrouver les points actuels plus tard
+                select.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
+                data.forEach(p => { 
+                    select.innerHTML += `<option value="${p.id}">${p.username} (Actuel: ${p.points_rl || 0} pts)</option>`; 
+                });
+            }
+        }
+
+        document.getElementById('admin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('admin-status');
+            
+            const playerId = document.getElementById('admin-player').value;
+            const action = document.getElementById('admin-action').value;
+            const amount = parseInt(document.getElementById('admin-points').value);
+
+            if (!playerId || isNaN(amount)) return;
+
+            statusDiv.innerText = "Mise à jour en cours...";
+
+            // Récupérer les points actuels du joueur sélectionné
+            const player = playersData.find(p => p.id === playerId);
+            let currentPoints = player.points_rl || 0;
+            let newPoints = action === 'add' ? currentPoints + amount : currentPoints - amount;
+            
+            // Éviter les points négatifs
+            if (newPoints < 0) newPoints = 0;
+
+            // Mise à jour dans Supabase
+            const { error } = await clientSupabase
+                .from('profiles')
+                .update({ points_rl: newPoints })
+                .eq('id', playerId);
+
+            if (error) {
+                statusDiv.innerText = "❌ Erreur : " + error.message;
+            } else {
+                statusDiv.innerText = `✅ Succès ! Les points ont été mis à jour (${newPoints} pts).`;
+                document.getElementById('admin-form').reset();
+                loadAdminPanel(); // Rafraîchir la liste
+            }
+        });
+
+        // ----------------------------------------------------
+        // FONCTIONS STANDARDS DU RESTE DU SITE
+        // ----------------------------------------------------
 
         // Inscription Joueur
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('auth-status');
             
-            if (!clientSupabase) {
-                statusDiv.innerText = "❌ Clés Supabase non renseignées ou mal configurées.";
-                return;
-            }
+            if (!clientSupabase) return;
 
             statusDiv.innerText = "Enregistrement en cours...";
-
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const username = document.getElementById('username').value;
-            
             const rankRl = document.getElementById('rank-rl').value;
 
             const { data, error } = await clientSupabase.auth.signUp({
-                email, 
-                password,
-                options: { 
-                    data: { 
-                        username: username,
-                        rank_rl: rankRl
-                    } 
-                }
+                email, password, options: { data: { username: username, rank_rl: rankRl } }
             });
 
-            if (error) {
-                statusDiv.innerText = "❌ Erreur : " + error.message;
-            } else {
-                statusDiv.innerText = "✅ Utilisateur créé ! Pensez à vérifier votre mail si la confirmation est activée.";
-            }
+            if (error) statusDiv.innerText = "❌ Erreur : " + error.message;
+            else statusDiv.innerText = "✅ Utilisateur créé !";
         });
 
-        // Chargement Adversaires
+        // Chargement Adversaires pour Résultat
         async function loadOpponents() {
             const select = document.getElementById('match-opponent');
             const { data: players } = await clientSupabase.from('profiles').select('id, username');
@@ -315,62 +434,38 @@
             }
         }
 
-        // Soumission et Analyse du Match (Edge Function)
+        // Soumission Résultat Match
         document.getElementById('match-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('match-status');
             
-            if (!clientSupabase) {
-                statusDiv.innerText = "❌ Supabase n'est pas initialisé.";
-                return;
-            }
-
-            // Le jeu est fixé sur Rocket League en dur
             const game = "Rocket League"; 
             const opponentId = document.getElementById('match-opponent').value;
             const fileInput = document.getElementById('match-file');
             const file = fileInput.files[0];
 
-            if (!opponentId) {
-                alert("Veuillez sélectionner un adversaire.");
-                return;
-            }
+            if (!opponentId) { alert("Veuillez sélectionner un adversaire."); return; }
 
-            statusDiv.innerText = "Envoi et analyse de la capture d'écran...";
+            statusDiv.innerText = "Envoi en cours...";
 
             try {
-                // 1. Récupérer l'utilisateur connecté
                 const { data: { user } } = await clientSupabase.auth.getUser();
-                if (!user) throw new Error("Vous devez être connecté pour envoyer un résultat.");
+                if (!user) throw new Error("Vous devez être connecté.");
 
-                // 2. Upload de l'image dans le Storage Supabase (Bucket 'match-proofs')
                 const filePath = `matches/${Date.now()}_${file.name}`;
-                const { error: uploadError } = await clientSupabase.storage
-                    .from('match-proofs')
-                    .upload(filePath, file);
-
+                const { error: uploadError } = await clientSupabase.storage.from('match-proofs').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
-                // Récupérer l'URL publique de l'image
-                const { data: { publicUrl } } = clientSupabase.storage
-                    .from('match-proofs')
-                    .getPublicUrl(filePath);
+                const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(filePath);
 
-                // 3. Appel de l'Edge Function d'analyse
-                const { data: result, error: fnError } = await clientSupabase.functions.invoke('analyze-match', {
-                    body: {
-                        image_url: publicUrl,
-                        game: game,
-                        player_id: user.id,
-                        opponent_id: opponentId
-                    }
+                const { error: fnError } = await clientSupabase.functions.invoke('analyze-match', {
+                    body: { image_url: publicUrl, game: game, player_id: user.id, opponent_id: opponentId }
                 });
 
                 if (fnError) throw fnError;
 
-                statusDiv.innerText = "✅ Résultat analysé et points mis à jour avec succès !";
+                statusDiv.innerText = "✅ Résultat envoyé !";
                 document.getElementById('match-form').reset();
-
             } catch (err) {
                 statusDiv.innerText = "❌ Erreur : " + err.message;
             }
@@ -379,11 +474,10 @@
         // Chargement Classement
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
-            // On ne sélectionne plus que les points de Rocket League
             const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl').order('points_rl', { ascending: false });
 
             if (error) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#ef4444;">Erreur lors du chargement des données.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#ef4444;">Erreur de chargement.</td></tr>';
                 return;
             }
 
