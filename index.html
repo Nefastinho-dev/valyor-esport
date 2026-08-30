@@ -46,8 +46,7 @@
         .logo { 
             max-width: 60px; 
             height: auto; 
-            cursor: pointer; 
-            mix-blend-mode: screen; /* Supprime le fond noir de l'image */
+            mix-blend-mode: screen; 
             background-color: transparent;
         }
 
@@ -449,15 +448,16 @@
 
     <header>
         <div class="header-left">
-            <img src="1000016862.jpg" alt="Valyor Logo" class="logo" id="logo-trigger">
+            <img src="1000016862.jpg" alt="Valyor Logo" class="logo">
             <span class="header-title">Valyor Esport</span>
         </div>
         <nav id="main-nav">
             <button class="nav-btn active" id="btn-accueil">Accueil</button>
             <button class="nav-btn" id="btn-connexion">Connexion</button>
             <button class="nav-btn" id="btn-inscription">Inscription</button>
-            <button class="nav-btn" id="btn-resultats" style="display: none;">Résultat de match</button>
+            <button class="nav-btn" id="btn-matchs-historique" style="display: none;">Matchs & Scrims</button>
             <button class="nav-btn" id="btn-classement" style="display: none;">Classement & Récompenses</button>
+            <button class="nav-btn" id="btn-admin" style="display: none;">Panel Admin</button>
             <button class="nav-btn" id="btn-credits" style="display: none;">Crédits</button>
             <button class="nav-btn logout-style" id="btn-logout" style="display: none;">Déconnexion</button>
         </nav>
@@ -541,13 +541,6 @@
                         Aucun joueur n'est rémunéré. Une rémunération n’intervient qu’en cas de gain sur cashcup, de classement rémunéré en cashcup, ou dans le cadre d’une collaboration rémunérée mais les scrims ne sont pas rémunérés.</p>
                     </div>
                 </div>
-
-                <div class="info-box" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(30, 10, 10, 0.5);">
-                    <h3 style="color: #fca5a5;">⚠️ En cas de problème</h3>
-                    <p style="margin: 0; font-size: 0.95rem; color: #d1d5db;">
-                        Pour tout problème ou question, rendez-vous sur le <a href="https://chat.whatsapp.com/Iq8OVdUN83XAKOFWrzH8LD?s=cl&p=a&mlu=4" target="_blank" style="color: #60a5fa;">groupe d'urgence et de recrutement</a> ou contactez directement l'administration par email à : <a href="mailto:kstorpaslefaut@gmail.com" style="color: #60a5fa;">kstorpaslefaut@gmail.com</a>.
-                    </p>
-                </div>
             </div>
 
             <div class="social-container-bottom">
@@ -558,7 +551,13 @@
                     <a href="https://whatsapp.com/channel/0029Vb6tuDa96H4YIXa7FY2N" target="_blank">📱 Chaîne WhatsApp de K-stor (14k)</a>
                     <a href="https://whatsapp.com/channel/0029VbCdZJm9cDDij5E37w34" target="_blank">📱 Chaîne WhatsApp Valyor (15k)</a>
                     <a href="https://www.youtube.com/@VALYOR_VLR" target="_blank">📺 Chaîne YouTube Valyor</a>
-                    <a href="https://chat.whatsapp.com/Iq8OVdUN83XAKOFWrzH8LD?s=cl&p=a&mlu=4" target="_blank">🚨 Groupe d'urgence et recrutement</a>
+                </div>
+
+                <div class="info-box" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(30, 10, 10, 0.5); margin-top: 30px; text-align: left;">
+                    <h3 style="color: #fca5a5;">⚠️ En cas de problème</h3>
+                    <p style="margin: 0; font-size: 0.95rem; color: #d1d5db;">
+                        Pour tout problème ou question, contactez directement l'administration par email à : <a href="mailto:kstorpaslefaut@gmail.com" style="color: #60a5fa;">kstorpaslefaut@gmail.com</a>.
+                    </p>
                 </div>
             </div>
         </div>
@@ -587,34 +586,58 @@
                 <div class="form-group"><label>Mot de passe :</label><input type="password" id="password" required></div>
                 <div class="form-group"><label>Pseudo en jeu / Site :</label><input type="text" id="username" required></div>
                 
-                <div class="grid-3">
-                    <div class="form-group">
-                        <label>Pseudo Tracker.gg :</label>
-                        <input type="text" id="tracker-username" placeholder="ex: Player#1234">
-                    </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>Lien Profil Tracker.gg (optionnel) :</label>
-                        <input type="url" id="tracker-link" placeholder="https://tracker.gg/...">
-                    </div>
+                <div class="form-group">
+                    <label>Numéro de téléphone :</label>
+                    <input type="tel" id="phone" placeholder="ex: 06XXXXXXXX">
                 </div>
 
-                <h3>Sélection du Peak Rank (Bonus de points de départ)</h3>
-                <p style="font-size: 0.85rem; color: #9ca3af; text-align: center; margin-top: -10px; margin-bottom: 15px;">
-                    Bronze : 50 pts | Argent : 80 pts | Or : 150 pts | Platine : 230 pts | Diamant : 325 pts | Champion : 500 pts | GC : 850 pts | SSL : 1 100 pts
-                </p>
-                <div class="form-group" style="max-width: 300px;">
-                    <label>Peak Rank Rocket League :</label>
-                    <select id="rank-rl">
-                        <option value="Non joué">Non joué (0 pts)</option>
-                        <option value="Bronze">Bronze (50 pts)</option>
-                        <option value="Argent">Argent (80 pts)</option>
-                        <option value="Or">Or (150 pts)</option>
-                        <option value="Platine">Platine (230 pts)</option>
-                        <option value="Diamant">Diamant (325 pts)</option>
-                        <option value="Champion">Champion (500 pts)</option>
-                        <option value="GC">GC (850 pts)</option>
-                        <option value="SSL">SSL (1 100 pts)</option>
-                    </select>
+                <div class="form-group">
+                    <label>Lien chaîne YouTube (optionnel) :</label>
+                    <input type="url" id="youtube-link" placeholder="https://youtube.com/...">
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Peak Rank Rocket League :</label>
+                        <select id="rank-rl">
+                            <option value="Non joué">Non joué (0 pts)</option>
+                            <option value="Bronze">Bronze (50 pts)</option>
+                            <option value="Argent">Argent (80 pts)</option>
+                            <option value="Or">Or (150 pts)</option>
+                            <option value="Platine">Platine (230 pts)</option>
+                            <option value="Diamant">Diamant (325 pts)</option>
+                            <option value="Champion">Champion (500 pts)</option>
+                            <option value="GC">GC (850 pts)</option>
+                            <option value="SSL">SSL (1 100 pts)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rang Brawl Stars :</label>
+                        <select id="rank-bs">
+                            <option value="Non joué">Non joué</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Argent">Argent</option>
+                            <option value="Or">Or</option>
+                            <option value="Diamant">Diamant</option>
+                            <option value="Mythique">Mythique</option>
+                            <option value="Légendaire">Légendaire</option>
+                            <option value="Maître">Maître</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rang Fortnite :</label>
+                        <select id="rank-fn">
+                            <option value="Non joué">Non joué</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Argent">Argent</option>
+                            <option value="Or">Or</option>
+                            <option value="Platine">Platine</option>
+                            <option value="Diamant">Diamant</option>
+                            <option value="Elite">Elite</option>
+                            <option value="Champion">Champion</option>
+                            <option value="Unreal">Unreal</option>
+                        </select>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-btn">S'inscrire</button>
@@ -622,26 +645,50 @@
             </form>
         </div>
 
-        <div id="sec-resultats" class="section">
-            <h2>Soumettre un Résultat de Match</h2>
-            <p style="text-align: center; font-size: 0.9rem; color: #9ca3af; margin-bottom: 20px;">
-                ℹ️ Les résultats des points gagnés ou perdus ne sont affichés qu'à la fin d'un match selon des calculs précis. <br>
-                <em>Rappel : Vous pouvez utiliser vos points uniquement après avoir fait au moins 3 1v1 avec des membres de Valyor.</em>
-            </p>
-            <form id="match-form">
-                <div class="form-group">
-                    <label>Adversaire affronté :</label>
-                    <select id="match-opponent">
-                        <option value="">-- Sélectionnez un joueur enregistré --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Capture d'écran du score final :</label>
-                    <input type="file" id="match-file" accept="image/*" required>
-                </div>
-                <button type="submit" class="submit-btn">Envoyer et analyser le match</button>
-            </form>
-            <div id="match-status" class="status-msg"></div>
+        <div id="sec-matchs-historique" class="section">
+            <h2>Résultats de Matchs & Historique des Scrims</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+                <button type="button" class="nav-btn active" id="subtab-soumettre" style="flex:1;">Soumettre un Match</button>
+                <button type="button" class="nav-btn" id="subtab-historique" style="flex:1;">Historique & Scrims</button>
+            </div>
+
+            <div id="subcontent-soumettre">
+                <p style="text-align: center; font-size: 0.9rem; color: #9ca3af; margin-bottom: 20px;">
+                    ℹ️ Les résultats des points gagnés ou perdus ne sont affichés qu'à la fin d'un match selon des calculs précis. <br>
+                    <em>Rappel : Vous pouvez utiliser vos points uniquement après avoir fait au moins 3 1v1 avec des membres de Valyor.</em>
+                </p>
+                <form id="match-form">
+                    <div class="form-group">
+                        <label>Adversaire affronté :</label>
+                        <select id="match-opponent">
+                            <option value="">-- Sélectionnez un joueur enregistré --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Capture d'écran du score final :</label>
+                        <input type="file" id="match-file" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Envoyer et analyser le match</button>
+                </form>
+                <div id="match-status" class="status-msg"></div>
+            </div>
+
+            <div id="subcontent-historique" style="display: none;">
+                <p style="color: #9ca3af; text-align: center;">Retrouvez ici l'historique complet des derniers scrims et matchs validés de la structure.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Jeu</th>
+                            <th>Équipe / Joueurs</th>
+                            <th>Statut / Résultat</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <tr><td colspan="4" style="text-align:center;">Aucun historique enregistré pour le moment.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div id="sec-classement" class="section">
@@ -662,30 +709,20 @@
                     <tr>
                         <th>Rang</th>
                         <th>Joueur</th>
-                        <th>Points</th>
+                        <th>Points RL</th>
+                        <th>Rang BS</th>
+                        <th>Rang FN</th>
                     </tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <tr><td colspan="3" style="text-align:center;">Chargement...</td></tr>
+                    <tr><td colspan="5" style="text-align:center;">Chargement...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <div id="sec-credits" class="section">
-            <h2>Crédits et Réseaux</h2>
-            <div class="social-links">
-                <a href="https://valyor-esport.vercel.app" target="_blank">💻 Site Officiel Valyor</a>
-                <a href="https://discord.gg/V9JmJu5mtG" target="_blank">💬 Serveur Discord Valyor</a>
-                <a href="https://whatsapp.com/channel/0029Vb6tuDa96H4YIXa7FY2N" target="_blank">📱 Chaîne WhatsApp de K-stor (14k)</a>
-                <a href="https://whatsapp.com/channel/0029VbCdZJm9cDDij5E37w34" target="_blank">📱 Chaîne WhatsApp Valyor (15k)</a>
-                <a href="https://www.youtube.com/@VALYOR_VLR" target="_blank">📺 Chaîne YouTube Valyor</a>
-                <a href="https://chat.whatsapp.com/Iq8OVdUN83XAKOFWrzH8LD?s=cl&p=a&mlu=4" target="_blank">🚨 Groupe d'urgence et recrutement</a>
-            </div>
-        </div>
-
         <div id="sec-admin" class="section">
             <h2>🛠️ Panel Administrateur</h2>
-            <p style="text-align:center; color:#ccc; margin-bottom: 25px;">Gestion manuelle des points de la communauté.</p>
+            <p style="text-align:center; color:#ccc; margin-bottom: 25px;">Gestion manuelle des comptes et des points de la communauté.</p>
             
             <form id="admin-form">
                 <div class="form-group">
@@ -699,8 +736,8 @@
                     <div class="form-group">
                         <label>Action :</label>
                         <select id="admin-action" required>
-                            <option value="add">Ajouter (+)</option>
-                            <option value="remove">Retirer (-)</option>
+                            <option value="add">Ajouter des points (+)</option>
+                            <option value="remove">Retirer des points (-)</option>
                         </select>
                     </div>
                     <div class="form-group" style="grid-column: span 2;">
@@ -712,6 +749,17 @@
                 <button type="submit" class="submit-btn">Appliquer la modification</button>
                 <div id="admin-status" class="status-msg" style="color: #fca5a5;"></div>
             </form>
+        </div>
+
+        <div id="sec-credits" class="section">
+            <h2>Crédits et Réseaux</h2>
+            <div class="social-links">
+                <a href="https://valyor-esport.vercel.app" target="_blank">💻 Site Officiel Valyor</a>
+                <a href="https://discord.gg/V9JmJu5mtG" target="_blank">💬 Serveur Discord Valyor</a>
+                <a href="https://whatsapp.com/channel/0029Vb6tuDa96H4YIXa7FY2N" target="_blank">📱 Chaîne WhatsApp de K-stor (14k)</a>
+                <a href="https://whatsapp.com/channel/0029VbCdZJm9cDDij5E37w34" target="_blank">📱 Chaîne WhatsApp Valyor (15k)</a>
+                <a href="https://www.youtube.com/@VALYOR_VLR" target="_blank">📺 Chaîne YouTube Valyor</a>
+            </div>
         </div>
 
     </div>
@@ -731,6 +779,7 @@
             if (clientSupabase) {
                 const { data: { session } } = await clientSupabase.auth.getSession();
                 if (session) {
+                    await checkUserAdminStatus(session.user);
                     onUserLoggedIn();
                 } else {
                     onUserLoggedOut();
@@ -741,8 +790,9 @@
                 { btn: 'btn-accueil', sec: 'sec-accueil' },
                 { btn: 'btn-connexion', sec: 'sec-connexion' },
                 { btn: 'btn-inscription', sec: 'sec-inscription' },
-                { btn: 'btn-resultats', sec: 'sec-resultats' },
+                { btn: 'btn-matchs-historique', sec: 'sec-matchs-historique' },
                 { btn: 'btn-classement', sec: 'sec-classement' },
+                { btn: 'btn-admin', sec: 'sec-admin' },
                 { btn: 'btn-credits', sec: 'sec-credits' }
             ];
 
@@ -760,9 +810,25 @@
                         button.classList.add('active');
 
                         if (tab.sec === 'sec-classement' && clientSupabase) loadLeaderboard();
-                        if (tab.sec === 'sec-resultats' && clientSupabase) loadOpponents();
+                        if (tab.sec === 'sec-matchs-historique' && clientSupabase) loadOpponents();
+                        if (tab.sec === 'sec-admin' && clientSupabase) loadAdminPanel();
                     });
                 }
+            });
+
+            // Sous-onglets Matchs & Historique
+            document.getElementById('subtab-soumettre').addEventListener('click', () => {
+                document.getElementById('subtab-soumettre').classList.add('active');
+                document.getElementById('subtab-historique').classList.remove('active');
+                document.getElementById('subcontent-soumettre').style.display = 'block';
+                document.getElementById('subcontent-historique').style.display = 'none';
+            });
+
+            document.getElementById('subtab-historique').addEventListener('click', () => {
+                document.getElementById('subtab-historique').classList.add('active');
+                document.getElementById('subtab-soumettre').classList.remove('active');
+                document.getElementById('subcontent-historique').style.display = 'block';
+                document.getElementById('subcontent-soumettre').style.display = 'none';
             });
 
             document.getElementById('btn-logout').addEventListener('click', async () => {
@@ -772,39 +838,32 @@
                     alert("Vous êtes déconnecté.");
                 }
             });
-
-            let logoClicks = 0;
-            let clickTimer;
-
-            document.getElementById('logo-trigger').addEventListener('click', () => {
-                logoClicks++;
-                clearTimeout(clickTimer);
-                clickTimer = setTimeout(() => { logoClicks = 0; }, 2000);
-
-                if (logoClicks === 5) {
-                    logoClicks = 0;
-                    const pwd = prompt("ACCÈS SÉCURISÉ : Entrez la clé administrateur.");
-                    if (pwd && btoa(pwd) === "Wjd4UTlwTDJ2TQ==") {
-                        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                        document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
-                        
-                        document.getElementById('sec-admin').classList.add('active');
-                        loadAdminPanel();
-                    } else if (pwd) {
-                        alert("Clé incorrecte. Accès refusé.");
-                    }
-                }
-            });
         });
 
-        function onUserLoggedIn() {
+        async function checkUserAdminStatus(user) {
+            // Définissez ici la logique ou l'email admin (ex: kstorpaslefaut@gmail.com ou via métadata/table)
+            const adminEmails = ["kstorpaslefaut@gmail.com"];
+            const isAdmin = adminEmails.includes(user.email) || user.user_metadata?.is_admin === true;
+            
+            const adminBtn = document.getElementById('btn-admin');
+            if (isAdmin) {
+                adminBtn.style.display = 'inline-block';
+            } else {
+                adminBtn.style.display = 'none';
+            }
+        }
+
+        async function onUserLoggedIn() {
             document.getElementById('btn-connexion').style.display = 'none';
             document.getElementById('btn-inscription').style.display = 'none';
 
-            document.getElementById('btn-resultats').style.display = 'inline-block';
+            document.getElementById('btn-matchs-historique').style.display = 'inline-block';
             document.getElementById('btn-classement').style.display = 'inline-block';
             document.getElementById('btn-credits').style.display = 'inline-block';
             document.getElementById('btn-logout').style.display = 'inline-block';
+
+            const { data: { user } } = await clientSupabase.auth.getUser();
+            if (user) await checkUserAdminStatus(user);
 
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('nav .nav-btn').forEach(b => {
@@ -820,8 +879,9 @@
             document.getElementById('btn-connexion').style.display = 'inline-block';
             document.getElementById('btn-inscription').style.display = 'inline-block';
 
-            document.getElementById('btn-resultats').style.display = 'none';
+            document.getElementById('btn-matchs-historique').style.display = 'none';
             document.getElementById('btn-classement').style.display = 'none';
+            document.getElementById('btn-admin').style.display = 'none';
             document.getElementById('btn-credits').style.display = 'none';
             document.getElementById('btn-logout').style.display = 'none';
 
@@ -851,7 +911,8 @@
                 statusDiv.innerText = "❌ Erreur : " + error.message;
             } else {
                 statusDiv.innerText = "✅ Connexion réussie ! Chargement...";
-                setTimeout(() => {
+                setTimeout(async () => {
+                    if (data.user) await checkUserAdminStatus(data.user);
                     onUserLoggedIn();
                 }, 600);
             }
@@ -868,7 +929,11 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const username = document.getElementById('username').value;
+            const phone = document.getElementById('phone').value;
+            const youtubeLink = document.getElementById('youtube-link').value;
             const rankRl = document.getElementById('rank-rl').value;
+            const rankBs = document.getElementById('rank-bs').value;
+            const rankFn = document.getElementById('rank-fn').value;
 
             const rankPoints = {
                 "Non joué": 0, "Bronze": 50, "Argent": 80, "Or": 150,
@@ -883,7 +948,11 @@
                 options: { 
                     data: { 
                         username: username, 
+                        phone: phone,
+                        youtube_link: youtubeLink,
                         rank_rl: rankRl,
+                        rank_bs: rankBs,
+                        rank_fn: rankFn,
                         points_rl: startingPoints 
                     } 
                 }
@@ -897,7 +966,14 @@
             if (data && data.user) {
                 await clientSupabase
                     .from('profiles')
-                    .update({ points_rl: startingPoints })
+                    .update({ 
+                        phone: phone,
+                        youtube_link: youtubeLink,
+                        rank_rl: rankRl,
+                        rank_bs: rankBs,
+                        rank_fn: rankFn,
+                        points_rl: startingPoints 
+                    })
                     .eq('id', data.user.id);
             }
 
@@ -1013,21 +1089,25 @@
 
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
-            const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl').order('points_rl', { ascending: false });
+            const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl, rank_bs, rank_fn').order('points_rl', { ascending: false });
 
             if (error) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#ef4444;">Erreur de chargement.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Erreur de chargement.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = '';
             players.forEach((p, index) => {
                 const total = p.points_rl || 0;
+                const bs = p.rank_bs || 'Non joué';
+                const fn = p.rank_fn || 'Non joué';
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>#${index + 1}</strong></td>
                         <td>${p.username || 'Joueur Anonyme'}</td>
                         <td><strong>${total}</strong></td>
+                        <td>${bs}</td>
+                        <td>${fn}</td>
                     </tr>
                 `;
             });
