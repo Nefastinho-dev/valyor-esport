@@ -86,7 +86,7 @@
 
         .rewards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
@@ -96,8 +96,11 @@
             border-radius: 8px;
             padding: 15px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        .reward-card .cost { font-size: 1.2em; font-weight: bold; color: #a855f7; margin-top: 5px; }
+        .reward-card .cost { font-size: 1.2em; font-weight: bold; color: #a855f7; margin-top: 10px; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #262626; font-size: 0.95em; }
@@ -147,38 +150,20 @@
                     </div>
                 </div>
 
-                <h3>Sélection des Rangs Actuels</h3>
-                <div class="grid-3">
-                    <div class="form-group">
-                        <label>Rocket League :</label>
-                        <select id="rank-rl">
-                            <option value="Non joué">Non joué</option>
-                            <option value="Bronze">Bronze</option><option value="Argent">Argent</option>
-                            <option value="Or">Or</option><option value="Platine">Platine</option>
-                            <option value="Diamant">Diamant</option><option value="Champion">Champion</option>
-                            <option value="GC">GC</option><option value="SSL">SSL</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fortnite :</label>
-                        <select id="rank-ftn">
-                            <option value="Non joué">Non joué</option>
-                            <option value="Bronze">Bronze</option><option value="Argent">Argent</option>
-                            <option value="Gold">Gold</option><option value="Platine">Platine</option>
-                            <option value="Diamant">Diamant</option><option value="Élite">Élite</option>
-                            <option value="Champion">Champion</option><option value="Unreal">Unreal</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Brawl Stars :</label>
-                        <select id="rank-bs">
-                            <option value="Non joué">Non joué</option>
-                            <option value="Bronze">Bronze</option><option value="Argent">Argent</option>
-                            <option value="Or">Or</option><option value="Diamant">Diamant</option>
-                            <option value="Mythique">Mythique</option><option value="Légendaire">Légendaire</option>
-                            <option value="Star">Star</option><option value="Pro">Pro</option>
-                        </select>
-                    </div>
+                <h3>Sélection du Rang Actuel</h3>
+                <div class="form-group" style="max-width: 300px;">
+                    <label>Rocket League :</label>
+                    <select id="rank-rl">
+                        <option value="Non joué">Non joué</option>
+                        <option value="Bronze">Bronze</option>
+                        <option value="Argent">Argent</option>
+                        <option value="Or">Or</option>
+                        <option value="Platine">Platine</option>
+                        <option value="Diamant">Diamant</option>
+                        <option value="Champion">Champion</option>
+                        <option value="GC">GC</option>
+                        <option value="SSL">SSL</option>
+                    </select>
                 </div>
 
                 <button type="submit" class="nav-btn submit-btn">S'inscrire (Vérification Tracker)</button>
@@ -190,14 +175,7 @@
         <div id="sec-resultats" class="section">
             <h2>Soumettre un Résultat de Match</h2>
             <form id="match-form">
-                <div class="form-group">
-                    <label>Jeu concerné :</label>
-                    <select id="match-game">
-                        <option value="Rocket League">Rocket League</option>
-                        <option value="Fortnite">Fortnite</option>
-                        <option value="Brawl Stars">Brawl Stars</option>
-                    </select>
-                </div>
+                <!-- Le champ de sélection du jeu a été retiré puisque la plateforme est 100% Rocket League -->
                 <div class="form-group">
                     <label>Adversaire affronté :</label>
                     <select id="match-opponent">
@@ -217,27 +195,26 @@
         <div id="sec-classement" class="section">
             <h2>Boutique des Récompenses</h2>
             <div class="rewards-grid">
-                <div class="reward-card"><div>Retrait avertissement</div><div class="cost">500 pts</div></div>
-                <div class="reward-card"><div>Post Annonces</div><div class="cost">800 pts</div></div>
-                <div class="reward-card"><div>Post Chaîne VALYOR</div><div class="cost">1 000 pts</div></div>
-                <div class="reward-card"><div>Post Chaîne 15k</div><div class="cost">1 500 pts</div></div>
-                <div class="reward-card"><div>Discord secret</div><div class="cost">1 750 pts</div></div>
+                <div class="reward-card"><div>Retirer l'avertissement de quelqu'un/de vous</div><div class="cost">800 pts</div></div>
+                <div class="reward-card"><div>Message au choix sur les annonces</div><div class="cost">1 000 pts</div></div>
+                <div class="reward-card"><div>Participer au prochain scrim</div><div class="cost">1 200 pts</div></div>
+                <div class="reward-card"><div>Poster une vidéo sur le compte VALYOR YT</div><div class="cost">1 300 pts</div></div>
+                <div class="reward-card"><div>Message au choix sur la chaîne VALYOR</div><div class="cost">1 500 pts</div></div>
+                <div class="reward-card"><div>Message au choix sur la chaîne 15k</div><div class="cost">1 800 pts</div></div>
+                <div class="reward-card"><div>Discord secret (RL, FTN)</div><div class="cost">3 000 pts</div></div>
             </div>
 
-            <h2 style="margin-top: 30px;">Classement Général par Jeu</h2>
+            <h2 style="margin-top: 30px;">Classement Général Rocket League</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Rang</th>
                         <th>Joueur</th>
-                        <th>RL</th>
-                        <th>Fortnite</th>
-                        <th>Brawl Stars</th>
-                        <th>Total</th>
+                        <th>Points</th>
                     </tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>
+                    <tr><td colspan="3" style="text-align:center;">Chargement...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -292,7 +269,7 @@
             });
         });
 
-        // Inscription Joueur (Mise à jour avec la récupération des rangs)
+        // Inscription Joueur
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('auth-status');
@@ -308,10 +285,7 @@
             const password = document.getElementById('password').value;
             const username = document.getElementById('username').value;
             
-            // Récupération des rangs sélectionnés dans le formulaire
             const rankRl = document.getElementById('rank-rl').value;
-            const rankFtn = document.getElementById('rank-ftn').value;
-            const rankBs = document.getElementById('rank-bs').value;
 
             const { data, error } = await clientSupabase.auth.signUp({
                 email, 
@@ -319,9 +293,7 @@
                 options: { 
                     data: { 
                         username: username,
-                        rank_rl: rankRl,
-                        rank_ftn: rankFtn,
-                        rank_bs: rankBs
+                        rank_rl: rankRl
                     } 
                 }
             });
@@ -353,7 +325,8 @@
                 return;
             }
 
-            const game = document.getElementById('match-game').value;
+            // Le jeu est fixé sur Rocket League en dur
+            const game = "Rocket League"; 
             const opponentId = document.getElementById('match-opponent').value;
             const fileInput = document.getElementById('match-file');
             const file = fileInput.files[0];
@@ -406,23 +379,21 @@
         // Chargement Classement
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
-            const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl, points_ftn, points_bs');
+            // On ne sélectionne plus que les points de Rocket League
+            const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl').order('points_rl', { ascending: false });
 
             if (error) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur lors du chargement des données.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#ef4444;">Erreur lors du chargement des données.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = '';
             players.forEach((p, index) => {
-                const total = (p.points_rl || 0) + (p.points_ftn || 0) + (p.points_bs || 0);
+                const total = p.points_rl || 0;
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>#${index + 1}</strong></td>
                         <td>${p.username || 'Joueur Anonyme'}</td>
-                        <td>${p.points_rl || 0}</td>
-                        <td>${p.points_ftn || 0}</td>
-                        <td>${p.points_bs || 0}</td>
                         <td><strong>${total}</strong></td>
                     </tr>
                 `;
