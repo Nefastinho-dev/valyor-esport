@@ -853,7 +853,7 @@
             const file = fileInput.files[0];
 
             if (!opponentId) { alert("Veuillez sélectionner un adversaire."); return; }
-            statusDiv.innerText = "Envoi en cours...";
+            statusDiv.innerText = "Envoi de l'image en cours...";
 
             try {
                 const { data: { user } } = await clientSupabase.auth.getUser();
@@ -868,13 +868,24 @@
 
                 const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(filePath);
 
-                const { error: fnError } = await clientSupabase.functions.invoke('analyze-match', {
-                    body: { image_url: publicUrl, game: game, player_id: user.id, opponent_id: opponentId }
+                statusDiv.innerText = "Analyse par Gemini et mise à jour des points...";
+
+                // Appel de l'API Vercel personnalisée à la place de l'Edge Function Supabase
+                const response = await fetch('/api/analyze-match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        image_url: publicUrl, 
+                        game: game, 
+                        player_id: user.id, 
+                        opponent_id: opponentId 
+                    })
                 });
 
-                if (fnError) throw fnError;
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || "Erreur lors de l'analyse backend.");
 
-                statusDiv.innerText = "✅ Résultat envoyé !";
+                statusDiv.innerText = "✅ Résultat analysé et envoyé avec succès !";
                 document.getElementById('match-form').reset();
             } catch (err) {
                 statusDiv.innerText = "❌ Erreur : " + err.message;
