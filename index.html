@@ -570,7 +570,6 @@
                     </div>
                 </div>
 
-                <!-- FORMULAIRE DE DEMANDE DE SCRIM -->
                 <div class="info-box" style="border-color: rgba(59, 130, 246, 0.4); background: rgba(15, 20, 35, 0.7);">
                     <h3>⚔️ Demande de Scrim</h3>
                     <p style="font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">Proposez un match amical (Scrim) à nos équipes. Vous devez posséder un compte enregistré pour envoyer une demande.</p>
@@ -823,7 +822,6 @@
                 <button type="button" class="nav-btn" id="subtab-admin-scrims" style="flex:1;">Demandes Scrims</button>
             </div>
 
-            <!-- Gestion des points -->
             <div id="subcontent-admin-points">
                 <form id="admin-form">
                     <div class="form-group">
@@ -852,7 +850,6 @@
                 </form>
             </div>
 
-            <!-- Modification des profils -->
             <div id="subcontent-admin-profiles" style="display: none;">
                 <form id="admin-profile-form">
                     <div class="form-group">
@@ -935,7 +932,6 @@
                 </form>
             </div>
 
-            <!-- Demandes de Scrim Admin -->
             <div id="subcontent-admin-scrims" style="display: none;">
                 <h3 style="text-align: left; color: #60a5fa;">Gestion des Demandes de Scrims</h3>
                 <div id="admin-scrims-list">
@@ -1016,57 +1012,69 @@
             });
 
             // Sous-onglets Matchs & Historique
-            document.getElementById('subtab-soumettre').addEventListener('click', () => {
-                document.getElementById('subtab-soumettre').classList.add('active');
-                document.getElementById('subtab-historique').classList.remove('active');
-                document.getElementById('subcontent-soumettre').style.display = 'block';
-                document.getElementById('subcontent-historique').style.display = 'none';
-            });
+            const subtabSoumettre = document.getElementById('subtab-soumettre');
+            const subtabHistorique = document.getElementById('subtab-historique');
+            if (subtabSoumettre && subtabHistorique) {
+                subtabSoumettre.addEventListener('click', () => {
+                    subtabSoumettre.classList.add('active');
+                    subtabHistorique.classList.remove('active');
+                    document.getElementById('subcontent-soumettre').style.display = 'block';
+                    document.getElementById('subcontent-historique').style.display = 'none';
+                });
 
-            document.getElementById('subtab-historique').addEventListener('click', () => {
-                document.getElementById('subtab-historique').classList.add('active');
-                document.getElementById('subtab-soumettre').classList.remove('active');
-                document.getElementById('subcontent-historique').style.display = 'block';
-                document.getElementById('subcontent-soumettre').style.display = 'none';
-                loadHistory();
-            });
+                subtabHistorique.addEventListener('click', () => {
+                    subtabHistorique.classList.add('active');
+                    subtabSoumettre.classList.remove('active');
+                    document.getElementById('subcontent-historique').style.display = 'block';
+                    document.getElementById('subcontent-soumettre').style.display = 'none';
+                    loadHistory();
+                });
+            }
 
             // Sous-onglets Panel Admin
-            document.getElementById('subtab-admin-points').addEventListener('click', () => {
-                document.getElementById('subtab-admin-points').classList.add('active');
-                document.getElementById('subtab-admin-profiles').classList.remove('active');
-                document.getElementById('subtab-admin-scrims').classList.remove('active');
-                document.getElementById('subcontent-admin-points').style.display = 'block';
-                document.getElementById('subcontent-admin-profiles').style.display = 'none';
-                document.getElementById('subcontent-admin-scrims').style.display = 'none';
-            });
+            const subtabAdminPoints = document.getElementById('subtab-admin-points');
+            const subtabAdminProfiles = document.getElementById('subtab-admin-profiles');
+            const subtabAdminScrims = document.getElementById('subtab-admin-scrims');
+            if (subtabAdminPoints && subtabAdminProfiles && subtabAdminScrims) {
+                subtabAdminPoints.addEventListener('click', () => {
+                    subtabAdminPoints.classList.add('active');
+                    subtabAdminProfiles.classList.remove('active');
+                    subtabAdminScrims.classList.remove('active');
+                    document.getElementById('subcontent-admin-points').style.display = 'block';
+                    document.getElementById('subcontent-admin-profiles').style.display = 'none';
+                    document.getElementById('subcontent-admin-scrims').style.display = 'none';
+                });
 
-            document.getElementById('subtab-admin-profiles').addEventListener('click', () => {
-                document.getElementById('subtab-admin-profiles').classList.add('active');
-                document.getElementById('subtab-admin-points').classList.remove('active');
-                document.getElementById('subtab-admin-scrims').classList.remove('active');
-                document.getElementById('subcontent-admin-profiles').style.display = 'block';
-                document.getElementById('subcontent-admin-points').style.display = 'none';
-                document.getElementById('subcontent-admin-scrims').style.display = 'none';
-            });
+                subtabAdminProfiles.addEventListener('click', () => {
+                    subtabAdminProfiles.classList.add('active');
+                    subtabAdminPoints.classList.remove('active');
+                    subtabAdminScrims.classList.remove('active');
+                    document.getElementById('subcontent-admin-profiles').style.display = 'block';
+                    document.getElementById('subcontent-admin-points').style.display = 'none';
+                    document.getElementById('subcontent-admin-scrims').style.display = 'none';
+                });
 
-            document.getElementById('subtab-admin-scrims').addEventListener('click', () => {
-                document.getElementById('subtab-admin-scrims').classList.add('active');
-                document.getElementById('subtab-admin-points').classList.remove('active');
-                document.getElementById('subtab-admin-profiles').classList.remove('active');
-                document.getElementById('subcontent-admin-scrims').style.display = 'block';
-                document.getElementById('subcontent-admin-points').style.display = 'none';
-                document.getElementById('subcontent-admin-profiles').style.display = 'none';
-                loadAdminScrims();
-            });
+                subtabAdminScrims.addEventListener('click', () => {
+                    subtabAdminScrims.classList.add('active');
+                    subtabAdminPoints.classList.remove('active');
+                    subtabAdminProfiles.classList.remove('active');
+                    document.getElementById('subcontent-admin-scrims').style.display = 'block';
+                    document.getElementById('subcontent-admin-points').style.display = 'none';
+                    document.getElementById('subcontent-admin-profiles').style.display = 'none';
+                    loadAdminScrims();
+                });
+            }
 
-            document.getElementById('btn-logout').addEventListener('click', async () => {
-                if(clientSupabase) {
-                    await clientSupabase.auth.signOut();
-                    onUserLoggedOut();
-                    alert("Vous êtes déconnecté.");
-                }
-            });
+            const btnLogout = document.getElementById('btn-logout');
+            if (btnLogout) {
+                btnLogout.addEventListener('click', async () => {
+                    if(clientSupabase) {
+                        await clientSupabase.auth.signOut();
+                        onUserLoggedOut();
+                        alert("Vous êtes déconnecté.");
+                    }
+                });
+            }
         });
 
         async function checkUserAdminStatus(user) {
@@ -1074,10 +1082,8 @@
             const isAdmin = adminEmails.includes(user.email) || user.user_metadata?.is_admin === true;
             
             const adminBtn = document.getElementById('btn-admin');
-            if (isAdmin) {
-                adminBtn.style.display = 'inline-block';
-            } else {
-                adminBtn.style.display = 'none';
+            if (adminBtn) {
+                adminBtn.style.display = isAdmin ? 'inline-block' : 'none';
             }
         }
 
@@ -1487,11 +1493,14 @@
             const file = fileInput.files[0];
 
             if (!opponentId) { alert("Veuillez sélectionner un adversaire."); return; }
-            statusDiv.innerText = "Envoi de l'image en cours...";
+            statusDiv.innerText = "Envoi de la preuve en cours...";
 
             try {
                 const { data: { user } } = await clientSupabase.auth.getUser();
                 if (!user) throw new Error("Vous devez être connecté.");
+
+                const opponentPlayer = playersData.find(p => p.id === opponentId);
+                const opponentName = opponentPlayer ? opponentPlayer.username : "Adversaire";
 
                 const sanitizedFileName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_]/g, "_");
                 const filePath = `matches/${Date.now()}_${sanitizedFileName}`;
@@ -1499,33 +1508,20 @@
                 const { error: uploadError } = await clientSupabase.storage.from('match-proofs').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
-                const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(filePath);
+                statusDiv.innerText = "Enregistrement du match...";
 
-                statusDiv.innerText = "Analyse par l'API et mise à jour...";
+                const { error: matchError } = await clientSupabase.from('matches').insert([{
+                    game: game,
+                    players_summary: `Match vs ${opponentName}`,
+                    status: 'En attente',
+                    created_at: new Date().toISOString()
+                }]);
 
-                const response = await fetch('/api/analyze-match', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        image_url: publicUrl, 
-                        game: game, 
-                        player_id: user.id, 
-                        opponent_id: opponentId 
-                    })
-                });
+                if (matchError) throw matchError;
 
-                const responseText = await response.text();
-                let result;
-                try {
-                    result = JSON.parse(responseText);
-                } catch (err) {
-                    throw new Error("Réponse serveur invalide (non-JSON) : " + responseText.substring(0, 100));
-                }
-
-                if (!response.ok) throw new Error(result.error || "Erreur lors de l'analyse backend.");
-
-                statusDiv.innerText = "✅ Résultat analysé et envoyé avec succès !";
+                statusDiv.innerText = "✅ Match soumis avec succès ! En attente de validation.";
                 document.getElementById('match-form').reset();
+                loadHistory();
             } catch (err) {
                 statusDiv.innerText = "❌ Erreur : " + err.message;
             }
@@ -1533,7 +1529,8 @@
 
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
-            
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Chargement du classement...</td></tr>';
+
             try {
                 const { data: players, error } = await clientSupabase
                     .from('profiles')
@@ -1542,7 +1539,6 @@
                     .order('points_rl', { ascending: false, nullsFirst: false });
 
                 if (error) {
-                    console.error("Erreur Supabase Leaderboard:", error);
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur : ${error.message}</td></tr>`;
                     return;
                 }
@@ -1554,23 +1550,23 @@
 
                 tbody.innerHTML = '';
                 players.forEach((p, index) => {
+                    let rankBadge = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index + 1}`));
                     const total = p.points_rl ?? 0;
                     const role = p.role || 'Joueur';
                     const bs = p.rank_bs || 'Non joué';
                     const fn = p.rank_fn || 'Non joué';
                     tbody.innerHTML += `
                         <tr>
-                            <td><strong>#${index + 1}</strong></td>
+                            <td><strong>${rankBadge}</strong></td>
                             <td>${p.username || 'Joueur Anonyme'}</td>
                             <td><span style="color: #c084fc; font-weight: 600;">${role}</span></td>
-                            <td><strong>${total}</strong></td>
+                            <td><strong>${total} pts</strong></td>
                             <td>${bs}</td>
                             <td>${fn}</td>
                         </tr>
                     `;
                 });
             } catch (err) {
-                console.error("Erreur critique:", err);
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur de connexion.</td></tr>`;
             }
         }
