@@ -1,136 +1,184 @@
+
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// --- DICTIONNAIRES DES BARÈMES ---
-const winPointsMatrix = {
-    'Bronze': 9, 'Argent': 11, 'Or': 20, 'Platine': 27,
-    'Diamant': 34, 'Champion': 47, 'GC': 73, 'SSL': 93
-};
+// Initialisation du client Supabase
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'TA_SUPABASE_URL',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'TA_SUPABASE_ANON_KEY'
+);
 
-const losePointsMatrix = {
-    'Bronze': { 'Bronze': 35, 'Argent': 60, 'Or': 110, 'Platine': 170, 'Diamant': 250, 'Champion': 360, 'GC': 550, 'SSL': 800 },
-    'Argent': { 'Bronze': 25, 'Argent': 45, 'Or': 90, 'Platine': 140, 'Diamant': 210, 'Champion': 310, 'GC': 480, 'SSL': 700 },
-    'Or': { 'Bronze': 18, 'Argent': 32, 'Or': 70, 'Platine': 115, 'Diamant': 180, 'Champion': 270, 'GC': 420, 'SSL': 620 },
-    'Platine': { 'Bronze': 12, 'Argent': 22, 'Or': 50, 'Platine': 95, 'Diamant': 150, 'Champion': 230, 'GC': 360, 'SSL': 540 },
-    'Diamant': { 'Bronze': 10, 'Argent': 16, 'Or': 35, 'Platine': 70, 'Diamant': 125, 'Champion': 195, 'GC': 310, 'SSL': 460 },
-    'Champion': { 'Bronze': 10, 'Argent': 12, 'Or': 25, 'Platine': 50, 'Diamant': 95, 'Champion': 160, 'GC': 260, 'SSL': 390 },
-    'GC': { 'Bronze': 10, 'Argent': 12, 'Or': 18, 'Platine': 35, 'Diamant': 65, 'Champion': 120, 'GC': 200, 'SSL': 320 },
-    'SSL': { 'Bronze': 10, 'Argent': 12, 'Or': 18, 'Platine': 28, 'Diamant': 45, 'Champion': 85, 'GC': 150, 'SSL': 350 }
-};
+export default function MatchSubmitForm() {
+  const [selectedGame, setSelectedGame] = useState('Rocket League');
+  const [opponents, setOpponents] = useState([]);
+  const [selectedOpponent, setSelectedOpponent] = useState('');
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
 
-function getNormalizedRank(rankStr) {
-    if (!rankStr) return 'Bronze';
-    const r = rankStr.trim().toLowerCase();
-    if (r.includes('bronze')) return 'Bronze';
-    if (r.includes('argent')) return 'Argent';
-    if (r.includes('or')) return 'Or';
-    if (r.includes('platine')) return 'Platine';
-    if (r.includes('diamant')) return 'Diamant';
-    if (r.includes('champion')) return 'Champion';
-    if (r.includes('gc')) return 'GC';
-    if (r.includes('ssl')) return 'SSL';
-    return 'Bronze';
-}
+  // Charger la liste des joueurs (adversaires potentiels)
+  useEffect(() => {
+    async function fetchPlayers() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .neq('id', user?.id || '');
 
-export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Méthode non autorisée' });
+      if (!error && data) {
+        setOpponents(data);
+      }
     }
+    fetchPlayers();
+  }, []);
+
+  // Fonction principale d'envoi et d'analyse
+  const handleAnalyzeMatch = async (e) => {
+    e.preventDefault();
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      setStatusMessage({ type: 'error', text: 'Vous devez être connecté.' });
+      return;
+    }
+    if (!selectedOpponent) {
+      setStatusMessage({ type: 'error', text: 'Veuillez sélectionner un adversaire.' });
+      return;
+    }
+    if (!file) {
+      setStatusMessage({ type: 'error', text: "Veuillez choisir une capture d'écran." });
+      return;
+    }
+
+    setLoading(true);
+    setStatusMessage({ type: 'info', text: "⏳ Analyse de l'image par l'IA en cours..." });
 
     try {
-        const { image_url, player_id, opponent_id } = req.body;
+      // 1. Upload de la preuve sur Supabase Storage
+      const fileName = `${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('match-proofs')
+        .upload(fileName, file);
 
-        if (!image_url || !player_id || !opponent_id) {
-            return res.status(400).json({ error: 'Paramètres manquants' });
-        }
+      if (uploadError) throw new Error("Erreur lors de l'envoi du fichier.");
 
-        const imageResponse = await fetch(image_url);
-        if (!imageResponse.ok) throw new Error("Impossible de récupérer l'image.");
-        
-        const mimeType = imageResponse.headers.get('content-type') || 'image/jpeg';
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const base64Image = Buffer.from(imageBuffer).toString('base64');
+      // 2. Récupération de l'URL publique de l'image
+      const { data: publicUrlData } = supabase.storage
+        .from('match-proofs')
+        .getPublicUrl(fileName);
 
-        const promptText = `Tu es un arbitre de jeu vidéo strict.
-Analyse cette image :
-1. Est-ce qu'il s'agit bien d'une capture d'écran de tableau de score / fin de match de jeu vidéo ? Si NON, renvoie exactement: {"valid": false}
-2. Si OUI, détermine le gagnant du match :
-   - Si le joueur principal (celui qui a pris la capture ou qui est indiqué gagnant/victoire) a gagné, renvoie: {"valid": true, "winner": "player"}
-   - Si l'adversaire a gagné (ou si l'écran indique Défaite), renvoie: {"valid": true, "winner": "opponent"}
-Renvoie EXCLUSIVEMENT un objet JSON strict.`;
+      const imageUrl = publicUrlData.publicUrl;
 
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        { text: promptText },
-                        { inline_data: { mime_type: mimeType, data: base64Image } }
-                    ]
-                }],
-                generationConfig: {
-                    response_mime_type: "application/json"
-                }
-            })
-        });
+      // 3. Appel de l'API Serverless Gemini (/api/analyze-match)
+      const response = await fetch('/api/analyze-match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_url: imageUrl,
+          player_id: user.id,
+          opponent_id: selectedOpponent
+        })
+      });
 
-        const geminiData = await geminiResponse.json();
-        if (!geminiResponse.ok) {
-            throw new Error(geminiData.error?.message || "Erreur Gemini API");
-        }
+      const result = await response.json();
 
-        const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        
-        let analysisResult;
-        try {
-            analysisResult = JSON.parse(candidateText);
-        } catch (e) {
-            return res.status(400).json({ error: "Impossible d'analyser le contenu de l'image." });
-        }
+      if (!response.ok) {
+        throw new Error(result.error || "L'analyse a échoué.");
+      }
 
-        // Vérification 1 : L'image est-elle valide ?
-        if (!analysisResult.valid) {
-            return res.status(400).json({ error: "L'image fournie n'est pas une capture d'écran de score valide." });
-        }
+      // 4. Succès : mise à jour du statut avec le message de l'API
+      setStatusMessage({
+        type: 'success',
+        text: `✅ ${result.message}`
+      });
+      setFile(null);
 
-        // Vérification 2 : Le résultat est-il clair ?
-        if (analysisResult.winner !== 'player' && analysisResult.winner !== 'opponent') {
-            return res.status(400).json({ error: "Impossible de déterminer le gagnant sur cette capture d'écran." });
-        }
-
-        const supabase = createClient(
-            process.env.SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY
-        );
-
-        const winnerId = analysisResult.winner === 'opponent' ? opponent_id : player_id;
-        const loserId = analysisResult.winner === 'opponent' ? player_id : opponent_id;
-
-        const { data: winnerProfile } = await supabase.from('profiles').select('points_rl, rank_rl').eq('id', winnerId).single();
-        const { data: loserProfile } = await supabase.from('profiles').select('points_rl, rank_rl').eq('id', loserId).single();
-
-        const winnerRank = getNormalizedRank(winnerProfile?.rank_rl);
-        const loserRank = getNormalizedRank(loserProfile?.rank_rl);
-
-        const pointsWon = winPointsMatrix[loserRank] || 9;
-        const pointsLost = losePointsMatrix[winnerRank]?.[loserRank] || 10;
-
-        const newWinnerPoints = (winnerProfile?.points_rl || 0) + pointsWon;
-        const newLoserPoints = Math.max((loserProfile?.points_rl || 0) - pointsLost, 0);
-
-        await supabase.from('profiles').update({ points_rl: newWinnerPoints }).eq('id', winnerId);
-        await supabase.from('profiles').update({ points_rl: newLoserPoints }).eq('id', loserId);
-
-        return res.status(200).json({ 
-            success: true, 
-            winner: winnerId, 
-            loser: loserId,
-            points_won: pointsWon,
-            points_lost: pointsLost,
-            message: `Match analysé. Le gagnant a reçu +${pointsWon} pts, le perdant a perdu -${pointsLost} pts.`
-        });
-    } catch (error) {
-        console.error("Erreur analyze-match:", error);
-        return res.status(500).json({ error: error.message });
+    } catch (err) {
+      console.error(err);
+      setStatusMessage({
+        type: 'error',
+        text: `❌ ${err.message}`
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  return (
+    <div style={{ maxWidth: '400px', margin: '0 auto', color: '#fff' }}>
+      <form onSubmit={handleAnalyzeMatch}>
+        {/* Jeu concerné */}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', color: '#c084fc' }}>Jeu concerné :</label>
+          <select 
+            value={selectedGame} 
+            onChange={(e) => setSelectedGame(e.target.value)}
+            style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#0f172a', color: '#fff', border: '1px solid #334155' }}
+          >
+            <option value="Rocket League">Rocket League</option>
+            <option value="Brawl Stars">Brawl Stars</option>
+            <option value="Fortnite">Fortnite</option>
+          </select>
+        </div>
+
+        {/* Adversaire affronté */}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', color: '#c084fc' }}>Adversaire affronté :</label>
+          <select 
+            value={selectedOpponent} 
+            onChange={(e) => setSelectedOpponent(e.target.value)}
+            style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#0f172a', color: '#fff', border: '1px solid #334155' }}
+          >
+            <option value="">-- Sélectionnez un joueur --</option>
+            {opponents.map((op) => (
+              <option key={op.id} value={op.id}>{op.username}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Capture d'écran */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', color: '#c084fc' }}>Capture d'écran du score final :</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            style={{ width: '100%', padding: '10px', background: '#0f172a', borderRadius: '8px', border: '1px solid #334155' }}
+          />
+        </div>
+
+        {/* Bouton de soumission */}
+        <button 
+          type="submit" 
+          disabled={loading}
+          style={{ 
+            width: '100%', 
+            padding: '12px', 
+            borderRadius: '8px', 
+            border: 'none', 
+            background: 'linear-gradient(90deg, #3b82f6, #a855f7)', 
+            color: '#fff', 
+            fontWeight: 'bold', 
+            cursor: loading ? 'not-allowed' : 'pointer' 
+          }}
+        >
+          {loading ? 'Analyse en cours...' : 'Envoyer et analyser le match'}
+        </button>
+      </form>
+
+      {/* Zone d'affichage du résultat de l'API */}
+      {statusMessage && (
+        <div style={{ 
+          marginTop: '15px', 
+          padding: '10px', 
+          borderRadius: '6px',
+          color: statusMessage.type === 'success' ? '#4ade80' : statusMessage.type === 'error' ? '#f87171' : '#93c5fd',
+          textAlign: 'center'
+        }}>
+          {statusMessage.text}
+        </div>
+      )}
+    </div>
+  );
 }
