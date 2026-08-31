@@ -592,6 +592,14 @@
                     <p style="font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">Proposez un match amical (Scrim) à nos équipes. Vous devez posséder un compte enregistré pour envoyer une demande.</p>
                     <form id="scrim-request-form">
                         <div class="form-group">
+                            <label>Nom de votre équipe :</label>
+                            <input type="text" id="scrim-team-name" placeholder="ex: Team Vitality" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Logo de votre équipe :</label>
+                            <input type="file" id="scrim-team-logo" accept="image/*" required>
+                        </div>
+                        <div class="form-group">
                             <label>Jeu concerné :</label>
                             <select id="scrim-game-select" required>
                                 <option value="Rocket League">Rocket League</option>
@@ -1258,7 +1266,7 @@
                 return;
             }
 
-            statusDiv.innerText = "Envoi de la demande en cours...";
+            statusDiv.innerText = "Envoi de la demande et du logo en cours...";
 
             const scrimGame = document.getElementById('scrim-game-select').value;
             const scrimRankMin = document.getElementById('scrim-rank-min').value;
@@ -1266,26 +1274,45 @@
             const scrimDate = document.getElementById('scrim-datetime').value;
             const format = document.getElementById('scrim-format').value;
             const boFormat = document.getElementById('scrim-bo').value;
+            const teamName = document.getElementById('scrim-team-name').value;
+            const logoFileInput = document.getElementById('scrim-team-logo');
+            const logoFile = logoFileInput.files[0];
 
-            const rankRangeStr = `${scrimRankMin} à ${scrimRankMax}`;
+            let logoUrl = null;
+            try {
+                if (logoFile) {
+                    const sanitizedLogoName = logoFile.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_]/g, "_");
+                    const logoPath = `logo_${Date.now()}_${sanitizedLogoName}`;
+                    const { error: uploadError } = await clientSupabase.storage.from('match-proofs').upload(logoPath, logoFile);
+                    if (uploadError) throw uploadError;
+                    const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(logoPath);
+                    logoUrl = publicUrl;
+                }
 
-            const { error } = await clientSupabase.from('scrim_requests').insert([{
-                user_id: user.id,
-                user_email: user.email,
-                game: scrimGame,
-                rank_range: rankRangeStr,
-                scrim_date: scrimDate,
-                format: format,
-                bo_format: boFormat,
-                status: 'en_attente',
-                chat_messages: []
-            }]);
+                const rankRangeStr = `${scrimRankMin} à ${scrimRankMax}`;
 
-            if (error) {
-                statusDiv.innerText = "❌ Erreur : " + error.message;
-            } else {
-                statusDiv.innerText = "✅ Demande de scrim envoyée avec succès aux administrateurs !";
-                document.getElementById('scrim-request-form').reset();
+                const { error } = await clientSupabase.from('scrim_requests').insert([{
+                    user_id: user.id,
+                    user_email: user.email,
+                    game: scrimGame,
+                    rank_range: rankRangeStr,
+                    scrim_date: scrimDate,
+                    format: format,
+                    bo_format: boFormat,
+                    team_name: teamName,
+                    team_logo_url: logoUrl,
+                    status: 'en_attente',
+                    chat_messages: []
+                }]);
+
+                if (error) {
+                    statusDiv.innerText = "❌ Erreur : " + error.message;
+                } else {
+                    statusDiv.innerText = "✅ Demande de scrim envoyée avec succès aux administrateurs !";
+                    document.getElementById('scrim-request-form').reset();
+                }
+            } catch (err) {
+                statusDiv.innerText = "❌ Erreur lors de l'envoi du logo : " + err.message;
             }
         });
 
@@ -1308,7 +1335,7 @@
                 deleteSelect.innerHTML = '<option value="">-- Sélectionnez un scrim à supprimer --</option>';
                 scrims.forEach(s => {
                     const dateFormatted = new Date(s.scrim_date).toLocaleString('fr-FR');
-                    deleteSelect.innerHTML += `<option value="${s.id}">${s.game || 'Scrim'} | ${s.format} | Demandeur: ${s.user_email} (${dateFormatted})</option>`;
+                    deleteSelect.innerHTML += `<option value="${s.id}">${s.team_name || 'Équipe'} | ${s.game || 'Scrim'} | Demandeur: ${s.user_email} (${dateFormatted})</option>`;
                 });
             }
 
@@ -1321,10 +1348,20 @@
                     messagesHtml += `<div style="margin-bottom: 5px;"><strong>${m.sender}:</strong> ${m.text}</div>`;
                 });
 
+                const logoHtml = s.team_logo_url 
+                    ? `<div style="margin-right: 12px;"><a href="${s.team_logo_url}" target="_blank"><img src="${s.team_logo_url}" alt="Logo" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(124, 58, 237, 0.4);"></a></div>` 
+                    : '';
+
                 container.innerHTML += `
                     <div class="scrim-req-card" id="scrim-card-${s.id}">
-                        <p><strong>Demandeur :</strong> ${s.user_email}</p>
-                        <p><strong>Jeu :</strong> ${s.game || 'Non spécifié'} | <strong>Rangs (Min → Max) :</strong> ${s.rank_range} | <strong>Format :</strong> ${s.format} (${s.bo_format})</p>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            ${logoHtml}
+                            <div>
+                                <h4 style="margin: 0; color: #c084fc; font-size: 1.1rem;">Équipe : ${s.team_name || 'Non spécifié'}</h4>
+                                <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #9ca3af;">Demandeur : ${s.user_email}</p>
+                            </div>
+                        </div>
+                        <p><strong>Jeu :</strong> ${s.game || 'Non spécifié'} | <strong>Rangs :</strong> ${s.rank_range} | <strong>Format :</strong> ${s.format} (${s.bo_format})</p>
                         <p><strong>Date prévue :</strong> ${dateFormatted}</p>
                         <p><strong>Statut :</strong> <span style="color: #60a5fa;">${s.status}</span></p>
                         
@@ -1433,7 +1470,7 @@
                 if (req) {
                     await clientSupabase.from('matches').insert([{
                         game: `${req.game || 'Scrim'} (${req.format})`,
-                        players_summary: `Valyor vs ${req.user_email} (Rangs : ${req.rank_range})`,
+                        players_summary: `Valyor vs ${req.team_name || req.user_email} (Rangs : ${req.rank_range})`,
                         status: 'À venir',
                         created_at: req.scrim_date ? new Date(req.scrim_date).toISOString() : new Date().toISOString()
                     }]);
