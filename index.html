@@ -973,7 +973,6 @@
                 clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
 
-            // Gestion dynamique de la fourchette de rangs de scrims selon le jeu choisi (min et max)
             const scrimGameSelect = document.getElementById('scrim-game-select');
             const scrimRankMinSelect = document.getElementById('scrim-rank-min');
             const scrimRankMaxSelect = document.getElementById('scrim-rank-max');
@@ -1040,7 +1039,6 @@
                 }
             });
 
-            // Sous-onglets Matchs & Historique
             const subtabSoumettre = document.getElementById('subtab-soumettre');
             const subtabHistorique = document.getElementById('subtab-historique');
             if (subtabSoumettre && subtabHistorique) {
@@ -1060,7 +1058,6 @@
                 });
             }
 
-            // Sous-onglets Panel Admin
             const subtabAdminPoints = document.getElementById('subtab-admin-points');
             const subtabAdminProfiles = document.getElementById('subtab-admin-profiles');
             const subtabAdminScrims = document.getElementById('subtab-admin-scrims');
@@ -1126,7 +1123,6 @@
                 if(b.id !== 'btn-logout') b.classList.remove('active');
             });
 
-            // Redirection directe vers la page d'accueil à la connexion
             document.getElementById('sec-accueil').classList.add('active');
             document.getElementById('btn-accueil').classList.add('active');
         }
@@ -1242,7 +1238,6 @@
             document.getElementById('signup-form').reset();
         });
 
-        // Gestion Demande de Scrim (Utilisateur) avec fourchette de rangs (Min - Max)
         document.getElementById('scrim-request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('scrim-req-status');
@@ -1345,7 +1340,9 @@
             
             container.innerHTML = '';
             for (const file of files) {
-                if (file.name === '.emptyFolderPlaceholder') continue;
+                // Ignore folder placeholders or directories like 'matches'
+                if (!file.id || file.name === 'matches' || !file.name.includes('.')) continue;
+                
                 const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(file.name);
                 const createdAt = file.created_at ? new Date(file.created_at).toLocaleString('fr-FR') : 'Date récente';
                 
@@ -1358,6 +1355,10 @@
                         <p style="font-size: 0.7rem; color: #9ca3af; margin: 0;">${createdAt}</p>
                     </div>
                 `;
+            }
+
+            if (container.innerHTML === '') {
+                container.innerHTML = '<p style="color: #9ca3af;">Aucune photo de preuve trouvée.</p>';
             }
         }
 
@@ -1629,4 +1630,3 @@
     </script>
 </body>
 </html>
- 
