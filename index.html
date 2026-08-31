@@ -423,6 +423,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
         }
 
         input[type="file"]::file-selector-button {
@@ -501,8 +502,8 @@
                 
                 <div class="stats-banner">
                     <div class="stat-card">
-                        <h3>14k+ / 15k+</h3>
-                        <p style="margin:0; color:#c084fc; font-weight:600;">Membres sur nos canaux WhatsApp</p>
+                        <h3>75k+</h3>
+                        <p style="margin:0; color:#c084fc; font-weight:600;">Portée & Membres cumulés</p>
                     </div>
                     <div class="stat-card">
                         <h3>Compétitif</h3>
@@ -804,12 +805,13 @@
 
         <div id="sec-admin" class="section">
             <h2>🛠️ Panel Administrateur</h2>
-            <p style="text-align:center; color:#ccc; margin-bottom: 20px;">Gestion des points, modification des profils et demandes de scrims.</p>
+            <p style="text-align:center; color:#ccc; margin-bottom: 20px;">Gestion des points, modification des profils, demandes de scrims et consultation des preuves.</p>
             
             <div class="admin-subtab-container">
                 <button type="button" class="nav-btn active" id="subtab-admin-points" style="flex:1;">Points</button>
                 <button type="button" class="nav-btn" id="subtab-admin-profiles" style="flex:1;">Profils</button>
                 <button type="button" class="nav-btn" id="subtab-admin-scrims" style="flex:1;">Demandes Scrims</button>
+                <button type="button" class="nav-btn" id="subtab-admin-proofs" style="flex:1;">Preuves Matchs</button>
             </div>
 
             <div id="subcontent-admin-points">
@@ -918,6 +920,13 @@
                     <p style="color: #9ca3af;">Chargement des demandes...</p>
                 </div>
             </div>
+
+            <div id="subcontent-admin-proofs" style="display: none;">
+                <h3 style="text-align: left; color: #60a5fa;">Photos & Preuves de Matchs envoyées</h3>
+                <div id="admin-proofs-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+                    <p style="color: #9ca3af;">Chargement des preuves...</p>
+                </div>
+            </div>
         </div>
 
         <div id="sec-credits" class="section">
@@ -1015,33 +1024,26 @@
             const subtabAdminPoints = document.getElementById('subtab-admin-points');
             const subtabAdminProfiles = document.getElementById('subtab-admin-profiles');
             const subtabAdminScrims = document.getElementById('subtab-admin-scrims');
-            if (subtabAdminPoints && subtabAdminProfiles && subtabAdminScrims) {
-                subtabAdminPoints.addEventListener('click', () => {
-                    subtabAdminPoints.classList.add('active');
-                    subtabAdminProfiles.classList.remove('active');
-                    subtabAdminScrims.classList.remove('active');
-                    document.getElementById('subcontent-admin-points').style.display = 'block';
-                    document.getElementById('subcontent-admin-profiles').style.display = 'none';
-                    document.getElementById('subcontent-admin-scrims').style.display = 'none';
-                });
+            const subtabAdminProofs = document.getElementById('subtab-admin-proofs');
 
-                subtabAdminProfiles.addEventListener('click', () => {
-                    subtabAdminProfiles.classList.add('active');
-                    subtabAdminPoints.classList.remove('active');
-                    subtabAdminScrims.classList.remove('active');
-                    document.getElementById('subcontent-admin-profiles').style.display = 'block';
-                    document.getElementById('subcontent-admin-points').style.display = 'none';
-                    document.getElementById('subcontent-admin-scrims').style.display = 'none';
-                });
+            if (subtabAdminPoints && subtabAdminProfiles && subtabAdminScrims && subtabAdminProofs) {
+                const subAdminTabs = [
+                    { btn: subtabAdminPoints, content: 'subcontent-admin-points', action: null },
+                    { btn: subtabAdminProfiles, content: 'subcontent-admin-profiles', action: null },
+                    { btn: subtabAdminScrims, content: 'subcontent-admin-scrims', action: loadAdminScrims },
+                    { btn: subtabAdminProofs, content: 'subcontent-admin-proofs', action: loadAdminProofs }
+                ];
 
-                subtabAdminScrims.addEventListener('click', () => {
-                    subtabAdminScrims.classList.add('active');
-                    subtabAdminPoints.classList.remove('active');
-                    subtabAdminProfiles.classList.remove('active');
-                    document.getElementById('subcontent-admin-scrims').style.display = 'block';
-                    document.getElementById('subcontent-admin-points').style.display = 'none';
-                    document.getElementById('subcontent-admin-profiles').style.display = 'none';
-                    loadAdminScrims();
+                subAdminTabs.forEach(t => {
+                    t.btn.addEventListener('click', () => {
+                        subAdminTabs.forEach(other => {
+                            other.btn.classList.remove('active');
+                            document.getElementById(other.content).style.display = 'none';
+                        });
+                        t.btn.classList.add('active');
+                        document.getElementById(t.content).style.display = 'block';
+                        if (t.action) t.action();
+                    });
                 });
             }
 
@@ -1084,9 +1086,9 @@
                 if(b.id !== 'btn-logout') b.classList.remove('active');
             });
 
-            document.getElementById('sec-classement').classList.add('active');
-            document.getElementById('btn-classement').classList.add('active');
-            loadLeaderboard();
+            // Redirection directe vers la page d'accueil à la connexion
+            document.getElementById('sec-accueil').classList.add('active');
+            document.getElementById('btn-accueil').classList.add('active');
         }
 
         function onUserLoggedOut() {
@@ -1283,6 +1285,35 @@
                     </div>
                 `;
             });
+        }
+
+        async function loadAdminProofs() {
+            const container = document.getElementById('admin-proofs-list');
+            container.innerHTML = '<p style="color: #9ca3af;">Chargement des preuves...</p>';
+            
+            const { data: files, error } = await clientSupabase.storage.from('match-proofs').list('', { limit: 50, sortBy: { column: 'created_at', order: 'desc' } });
+            
+            if (error || !files || files.length === 0) {
+                container.innerHTML = '<p style="color: #9ca3af;">Aucune photo de preuve trouvée dans le bucket.</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            for (const file of files) {
+                if (file.name === '.emptyFolderPlaceholder') continue;
+                const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(file.name);
+                const createdAt = file.created_at ? new Date(file.created_at).toLocaleString('fr-FR') : 'Date récente';
+                
+                container.innerHTML += `
+                    <div style="background: rgba(20, 20, 35, 0.8); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
+                        <a href="${publicUrl}" target="_blank">
+                            <img src="${publicUrl}" alt="${file.name}" style="max-width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                        </a>
+                        <p style="font-size: 0.75rem; color: #d1d5db; margin: 4px 0; word-break: break-all;">${file.name}</p>
+                        <p style="font-size: 0.7rem; color: #9ca3af; margin: 0;">${createdAt}</p>
+                    </div>
+                `;
+            }
         }
 
         window.toggleNegociation = async function(id) {
