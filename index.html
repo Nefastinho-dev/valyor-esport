@@ -1214,22 +1214,6 @@
                 return;
             }
 
-            if (data && data.user) {
-                await clientSupabase
-                    .from('profiles')
-                    .update({ 
-                        phone: phone,
-                        role: role,
-                        youtube_link: youtubeLink,
-                        rank_rl: rankRl,
-                        rank_bs: rankBs,
-                        rank_fn: rankFn,
-                        points_rl: startingPoints,
-                        show_in_leaderboard: true
-                    })
-                    .eq('id', data.user.id);
-            }
-
             statusDiv.innerText = `✅ Compte créé ! Bonus de bienvenue : ${startingPoints} pts. Vous pouvez vous connecter.`;
             document.getElementById('signup-form').reset();
         });
@@ -1307,7 +1291,7 @@
                         <div id="chat-section-${s.id}" style="${s.status === 'negociation' ? 'display:block;' : 'display:none;'}">
                             <label style="font-size: 0.85rem;">Discussion / Négociation :</label>
                             <div class="chat-box" id="chat-box-${s.id}">${messagesHtml || '<em style="color:#777">Aucun message</em>'}</div>
-                            <div style="display: flex; gap: 5px; margin-bottom: 10px;" onsubmit="event.preventDefault();">
+                            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                                 <input type="text" id="chat-input-${s.id}" placeholder="Écrire un message..." onkeypress="if(event.key === 'Enter') sendScrimMessage('${s.id}')">
                                 <button type="button" class="nav-btn" onclick="sendScrimMessage('${s.id}')">Envoyer</button>
                             </div>
@@ -1363,14 +1347,7 @@
             chatSec.style.display = isVisible ? 'none' : 'block';
             
             if (!isVisible) {
-                const { error } = await clientSupabase
-                    .from('scrim_requests')
-                    .update({ status: 'negociation' })
-                    .eq('id', id);
-                
-                if (error) {
-                    alert("❌ Erreur lors du passage en négociation : " + error.message);
-                }
+                await clientSupabase.from('scrim_requests').update({ status: 'negociation' }).eq('id', id);
             }
         };
 
@@ -1379,30 +1356,11 @@
             const text = input.value.trim();
             if (!text) return;
 
-            const { data: scrim, error: fetchError } = await clientSupabase
-                .from('scrim_requests')
-                .select('chat_messages')
-                .eq('id', id)
-                .single();
-
-            if (fetchError) {
-                alert("❌ Erreur de récupération du chat : " + fetchError.message);
-                return;
-            }
-
+            const { data: scrim } = await clientSupabase.from('scrim_requests').select('chat_messages').eq('id', id).single();
             const messages = scrim?.chat_messages || [];
             messages.push({ sender: 'Admin', text: text, time: new Date().toISOString() });
 
-            const { error: updateError } = await clientSupabase
-                .from('scrim_requests')
-                .update({ chat_messages: messages })
-                .eq('id', id);
-
-            if (updateError) {
-                alert("❌ Erreur d'envoi du message : " + updateError.message);
-                return;
-            }
-
+            await clientSupabase.from('scrim_requests').update({ chat_messages: messages }).eq('id', id);
             input.value = '';
             loadAdminScrims();
         };
@@ -1410,57 +1368,21 @@
         window.updateScrimStatus = async function(id, newStatus) {
             if (newStatus === 'refuse') {
                 if (!confirm("Voulez-vous vraiment refuser et supprimer cette demande ?")) return;
-                
-                const { error } = await clientSupabase
-                    .from('scrim_requests')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) {
-                    alert("❌ Erreur lors de la suppression : " + error.message);
-                    return;
-                }
-                
-                alert("Demande de scrim refusée et supprimée.");
+                await clientSupabase.from('scrim_requests').delete().eq('id', id);
+                alert("Demande refusée et supprimée.");
             } else if (newStatus === 'valide') {
-                const { data: req, error: fetchError } = await clientSupabase
-                    .from('scrim_requests')
-                    .select('*')
-                    .eq('id', id)
-                    .single();
-
-                if (fetchError || !req) {
-                    alert("❌ Erreur de récupération de la demande : " + (fetchError?.message || "Introuvable"));
-                    return;
-                }
-
-                const { error: insertError } = await clientSupabase
-                    .from('matches')
-                    .insert([{
+                const { data: req } = await clientSupabase.from('scrim_requests').select('*').eq('id', id).single();
+                if (req) {
+                    await clientSupabase.from('matches').insert([{
                         game: `${req.game || 'Scrim'} (${req.format})`,
                         players_summary: `Valyor vs ${req.user_email} (Rangs : ${req.rank_range})`,
                         status: 'À venir',
                         created_at: req.scrim_date ? new Date(req.scrim_date).toISOString() : new Date().toISOString()
                     }]);
-
-                if (insertError) {
-                    alert("❌ Erreur lors de l'ajout dans les matchs à venir : " + insertError.message);
-                    return;
+                    await clientSupabase.from('scrim_requests').delete().eq('id', id);
+                    alert("✅ Scrim validé et déplacé vers l'historique !");
                 }
-
-                const { error: deleteError } = await clientSupabase
-                    .from('scrim_requests')
-                    .delete()
-                    .eq('id', id);
-
-                if (deleteError) {
-                    alert("❌ Erreur lors du nettoyage de la demande : " + deleteError.message);
-                    return;
-                }
-
-                alert("✅ Scrim validé avec succès ! Il a été déplacé vers l'historique des matchs à venir.");
             }
-            
             loadAdminScrims();
         };
 
@@ -1471,7 +1393,7 @@
             selectPoints.innerHTML = '<option value="">-- Chargement... --</option>';
             selectEdit.innerHTML = '<option value="">-- Chargement... --</option>';
             
-            const { data, error } = await clientSupabase.from('profiles').select('id, username, role, points_rl, rank_rl, rank_bs, rank_fn, show_in_leaderboard').order('username');
+            const { data } = await clientSupabase.from('profiles').select('*').order('username');
             
             if (data) {
                 playersData = data; 
@@ -1513,10 +1435,7 @@
             let newPoints = action === 'add' ? currentPoints + amount : currentPoints - amount;
             if (newPoints < 0) newPoints = 0;
 
-            const { error } = await clientSupabase
-                .from('profiles')
-                .update({ points_rl: newPoints })
-                .eq('id', playerId);
+            const { error } = await clientSupabase.from('profiles').update({ points_rl: newPoints }).eq('id', playerId);
 
             if (error) {
                 statusDiv.innerText = "❌ Erreur : " + error.message;
@@ -1538,24 +1457,17 @@
             const newRankFn = document.getElementById('admin-edit-rank-fn').value;
             const showInLeaderboard = document.getElementById('admin-edit-show-leaderboard').checked;
 
-            if (!playerId) {
-                statusDiv.innerText = "❌ Veuillez sélectionner un joueur.";
-                return;
-            }
+            if (!playerId) return;
+            statusDiv.innerText = "Mise à jour...";
 
-            statusDiv.innerText = "Mise à jour du profil...";
-
-            const { error } = await clientSupabase
-                .from('profiles')
-                .update({ 
-                    username: newUsername,
-                    role: newRole,
-                    rank_rl: newRankRl,
-                    rank_bs: newRankBs,
-                    rank_fn: newRankFn,
-                    show_in_leaderboard: showInLeaderboard
-                })
-                .eq('id', playerId);
+            const { error } = await clientSupabase.from('profiles').update({ 
+                username: newUsername,
+                role: newRole,
+                rank_rl: newRankRl,
+                rank_bs: newRankBs,
+                rank_fn: newRankFn,
+                show_in_leaderboard: showInLeaderboard
+            }).eq('id', playerId);
 
             if (error) {
                 statusDiv.innerText = "❌ Erreur : " + error.message;
@@ -1576,13 +1488,10 @@
 
         async function loadHistory() {
             const tbody = document.getElementById('history-body');
-            const { data: matches, error } = await clientSupabase
-                .from('matches')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const { data: matches, error } = await clientSupabase.from('matches').select('*').order('created_at', { ascending: false });
 
             if (error || !matches || matches.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Aucun historique enregistré pour le moment.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Aucun historique enregistré.</td></tr>';
                 return;
             }
 
@@ -1609,31 +1518,24 @@
             const file = fileInput.files[0];
 
             if (!opponentId) { alert("Veuillez sélectionner un adversaire."); return; }
-            statusDiv.innerText = "Envoi de la preuve en cours...";
+            statusDiv.innerText = "Envoi de la preuve...";
 
             try {
-                const { data: { user } } = await clientSupabase.auth.getUser();
-                if (!user) throw new Error("Vous devez être connecté.");
-
                 const opponentPlayer = playersData.find(p => p.id === opponentId);
                 const opponentName = opponentPlayer ? opponentPlayer.username : "Adversaire";
 
                 const sanitizedFileName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_]/g, "_");
-                const filePath = `matches/${Date.now()}_${sanitizedFileName}`;
+                const filePath = `${Date.now()}_${sanitizedFileName}`;
 
                 const { error: uploadError } = await clientSupabase.storage.from('match-proofs').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
-                statusDiv.innerText = "Enregistrement du match...";
-
-                const { error: matchError } = await clientSupabase.from('matches').insert([{
+                await clientSupabase.from('matches').insert([{
                     game: game,
                     players_summary: `Match vs ${opponentName}`,
                     status: 'En attente',
                     created_at: new Date().toISOString()
                 }]);
-
-                if (matchError) throw matchError;
 
                 statusDiv.innerText = "✅ Match soumis avec succès ! En attente de validation.";
                 document.getElementById('match-form').reset();
@@ -1645,46 +1547,33 @@
 
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Chargement du classement...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>';
 
-            try {
-                const { data: players, error } = await clientSupabase
-                    .from('profiles')
-                    .select('username, role, points_rl, rank_bs, rank_fn, show_in_leaderboard')
-                    .neq('show_in_leaderboard', false)
-                    .order('points_rl', { ascending: false, nullsFirst: false });
+            const { data: players, error } = await clientSupabase
+                .from('profiles')
+                .select('*')
+                .neq('show_in_leaderboard', false)
+                .order('points_rl', { ascending: false });
 
-                if (error) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur : ${error.message}</td></tr>`;
-                    return;
-                }
-
-                if (!players || players.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucun joueur trouvé.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = '';
-                players.forEach((p, index) => {
-                    let rankBadge = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index + 1}`));
-                    const total = p.points_rl ?? 0;
-                    const role = p.role || 'Joueur';
-                    const bs = p.rank_bs || 'Non joué';
-                    const fn = p.rank_fn || 'Non joué';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${rankBadge}</strong></td>
-                            <td>${p.username || 'Joueur Anonyme'}</td>
-                            <td><span style="color: #c084fc; font-weight: 600;">${role}</span></td>
-                            <td><strong>${total} pts</strong></td>
-                            <td>${bs}</td>
-                            <td>${fn}</td>
-                        </tr>
-                    `;
-                });
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur de connexion.</td></tr>`;
+            if (error || !players || players.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucun joueur trouvé.</td></tr>';
+                return;
             }
+
+            tbody.innerHTML = '';
+            players.forEach((p, index) => {
+                let rankBadge = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index + 1}`));
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${rankBadge}</strong></td>
+                        <td>${p.username || 'Anonyme'}</td>
+                        <td><span style="color: #c084fc; font-weight: 600;">${p.role || 'Joueur'}</span></td>
+                        <td><strong>${p.points_rl ?? 0} pts</strong></td>
+                        <td>${p.rank_bs || 'Non joué'}</td>
+                        <td>${p.rank_fn || 'Non joué'}</td>
+                    </tr>
+                `;
+            });
         }
     </script>
 </body>
