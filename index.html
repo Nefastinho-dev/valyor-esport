@@ -1141,7 +1141,6 @@
             }
         }
 
-        // Écouteur de sélection pour le formulaire d'édition de profil
         document.getElementById('admin-edit-player').addEventListener('change', (e) => {
             const selectedId = e.target.value;
             const player = playersData.find(p => p.id === selectedId);
@@ -1309,30 +1308,45 @@
 
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
-            const { data: players, error } = await clientSupabase.from('profiles').select('username, role, points_rl, rank_bs, rank_fn').order('points_rl', { ascending: false });
+            
+            try {
+                const { data: players, error } = await clientSupabase
+                    .from('profiles')
+                    .select('username, role, points_rl, rank_bs, rank_fn')
+                    .order('points_rl', { ascending: false, nullsFirst: false });
 
-            if (error) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur de chargement.</td></tr>';
-                return;
+                if (error) {
+                    console.error("Erreur Supabase Leaderboard:", error);
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur : ${error.message}</td></tr>`;
+                    return;
+                }
+
+                if (!players || players.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucun joueur trouvé.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                players.forEach((p, index) => {
+                    const total = p.points_rl ?? 0;
+                    const role = p.role || 'Joueur';
+                    const bs = p.rank_bs || 'Non joué';
+                    const fn = p.rank_fn || 'Non joué';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>#${index + 1}</strong></td>
+                            <td>${p.username || 'Joueur Anonyme'}</td>
+                            <td><span style="color: #c084fc; font-weight: 600;">${role}</span></td>
+                            <td><strong>${total}</strong></td>
+                            <td>${bs}</td>
+                            <td>${fn}</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Erreur critique:", err);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur de connexion.</td></tr>`;
             }
-
-            tbody.innerHTML = '';
-            players.forEach((p, index) => {
-                const total = p.points_rl || 0;
-                const role = p.role || 'Joueur';
-                const bs = p.rank_bs || 'Non joué';
-                const fn = p.rank_fn || 'Non joué';
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>#${index + 1}</strong></td>
-                        <td>${p.username || 'Joueur Anonyme'}</td>
-                        <td><span style="color: #c084fc; font-weight: 600;">${role}</span></td>
-                        <td><strong>${total}</strong></td>
-                        <td>${bs}</td>
-                        <td>${fn}</td>
-                    </tr>
-                `;
-            });
         }
     </script>
 </body>
