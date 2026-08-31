@@ -461,6 +461,22 @@
             font-size: 0.9rem;
         }
 
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .delete-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
@@ -765,7 +781,7 @@
             </div>
 
             <div id="subcontent-historique" style="display: none;">
-                <p style="color: #9ca3af; text-align: center;">Retrouvez ici l'historique complet des derniers scrims validés (statut : À venir / Passés) et matchs.</p>
+                <p style="color: #9ca3af; text-align: center;">Retrouvez ici l'historique complet des derniers scrims validés (statut : À venir / Passés) et matchs. Vous pouvez supprimer un match de l'historique ci-dessous.</p>
                 <table>
                     <thead>
                         <tr>
@@ -773,10 +789,11 @@
                             <th>Type / Jeu</th>
                             <th>Détails / Équipe</th>
                             <th>Statut</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="history-body">
-                        <tr><td colspan="4" style="text-align:center;">Chargement de l'historique...</td></tr>
+                        <tr><td colspan="5" style="text-align:center;">Chargement de l'historique...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -925,6 +942,18 @@
 
             <div id="subcontent-admin-scrims" style="display: none;">
                 <h3 style="text-align: left; color: #60a5fa;">Gestion des Demandes de Scrims</h3>
+                
+                <div class="info-box" style="margin-top: 15px; margin-bottom: 25px; border-color: rgba(239, 68, 68, 0.4);">
+                    <h4 style="color: #fca5a5; margin-top: 0;">🗑️ Suppression ciblée d'un Scrim</h4>
+                    <div class="form-group">
+                        <label>Sélectionner le scrim à supprimer :</label>
+                        <select id="admin-delete-scrim-select">
+                            <option value="">-- Chargement des demandes --</option>
+                        </select>
+                    </div>
+                    <button type="button" class="submit-btn" style="background: linear-gradient(135deg, #ef4444, #b91c1c); margin-top: 5px;" onclick="deleteSelectedScrim()">Supprimer ce Scrim</button>
+                </div>
+
                 <div id="admin-scrims-list">
                     <p style="color: #9ca3af;">Chargement des demandes...</p>
                 </div>
@@ -1262,6 +1291,8 @@
 
         async function loadAdminScrims() {
             const container = document.getElementById('admin-scrims-list');
+            const deleteSelect = document.getElementById('admin-delete-scrim-select');
+
             const { data: scrims, error } = await clientSupabase
                 .from('scrim_requests')
                 .select('*')
@@ -1269,7 +1300,16 @@
 
             if (error || !scrims || scrims.length === 0) {
                 container.innerHTML = '<p style="color: #9ca3af;">Aucune demande de scrim en attente.</p>';
+                if (deleteSelect) deleteSelect.innerHTML = '<option value="">-- Aucun scrim disponible --</option>';
                 return;
+            }
+
+            if (deleteSelect) {
+                deleteSelect.innerHTML = '<option value="">-- Sélectionnez un scrim à supprimer --</option>';
+                scrims.forEach(s => {
+                    const dateFormatted = new Date(s.scrim_date).toLocaleString('fr-FR');
+                    deleteSelect.innerHTML += `<option value="${s.id}">${s.game || 'Scrim'} | ${s.format} | Demandeur: ${s.user_email} (${dateFormatted})</option>`;
+                });
             }
 
             container.innerHTML = '';
@@ -1297,15 +1337,33 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #22c55e, #15803d);" onclick="updateScrimStatus('${s.id}', 'valide')">Valider</button>
-                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #eab308, #ca8a04);" onclick="toggleNegociation('${s.id}')">Négocier</button>
-                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #ef4444, #b91c1c);" onclick="updateScrimStatus('${s.id}', 'refuse')">Refuser</button>
+                        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #22c55e, #15803d); flex:1;" onclick="updateScrimStatus('${s.id}', 'valide')">Valider</button>
+                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #eab308, #ca8a04); flex:1;" onclick="toggleNegociation('${s.id}')">Négocier</button>
+                            <button type="button" class="delete-btn" style="padding: 12px; flex:1;" onclick="updateScrimStatus('${s.id}', 'refuse')">Supprimer / Refuser</button>
                         </div>
                     </div>
                 `;
             });
         }
+
+        window.deleteSelectedScrim = async function() {
+            const select = document.getElementById('admin-delete-scrim-select');
+            const scrimId = select ? select.value : '';
+            if (!scrimId) {
+                alert("Veuillez sélectionner un scrim précis à supprimer dans le menu déroulant.");
+                return;
+            }
+            if (!confirm("Voulez-vous vraiment supprimer ce scrim de la base de données ?")) return;
+
+            const { error } = await clientSupabase.from('scrim_requests').delete().eq('id', scrimId);
+            if (error) {
+                alert("❌ Erreur lors de la suppression : " + error.message);
+            } else {
+                alert("✅ Le scrim a été supprimé avec succès !");
+                loadAdminScrims();
+            }
+        };
 
         async function loadAdminProofs() {
             const container = document.getElementById('admin-proofs-list');
@@ -1367,9 +1425,9 @@
 
         window.updateScrimStatus = async function(id, newStatus) {
             if (newStatus === 'refuse') {
-                if (!confirm("Voulez-vous vraiment refuser et supprimer cette demande ?")) return;
+                if (!confirm("Voulez-vous vraiment supprimer cette demande de scrim ?")) return;
                 await clientSupabase.from('scrim_requests').delete().eq('id', id);
-                alert("Demande refusée et supprimée.");
+                alert("Demande supprimée.");
             } else if (newStatus === 'valide') {
                 const { data: req } = await clientSupabase.from('scrim_requests').select('*').eq('id', id).single();
                 if (req) {
@@ -1491,7 +1549,7 @@
             const { data: matches, error } = await clientSupabase.from('matches').select('*').order('created_at', { ascending: false });
 
             if (error || !matches || matches.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Aucun historique enregistré.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucun historique enregistré.</td></tr>';
                 return;
             }
 
@@ -1504,10 +1562,22 @@
                         <td>${m.game || 'Scrim'}</td>
                         <td>${m.players_summary || 'Match'}</td>
                         <td><span style="color:${m.status === 'Validé' ? '#4ade80' : (m.status === 'À venir' ? '#60a5fa' : '#f87171')}">${m.status || 'En attente'}</span></td>
+                        <td><button type="button" class="delete-btn" onclick="deleteMatchFromHistory('${m.id}')">Supprimer</button></td>
                     </tr>
                 `;
             });
         }
+
+        window.deleteMatchFromHistory = async function(matchId) {
+            if (!confirm("Voulez-vous vraiment supprimer ce match/scrim de l'historique ?")) return;
+            const { error } = await clientSupabase.from('matches').delete().eq('id', matchId);
+            if (error) {
+                alert("❌ Erreur lors de la suppression : " + error.message);
+            } else {
+                alert("✅ Élément supprimé avec succès !");
+                loadHistory();
+            }
+        };
 
         document.getElementById('match-form').addEventListener('submit', async (e) => {
             e.preventDefault();
