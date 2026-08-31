@@ -684,39 +684,29 @@
                         <label>Peak Rank Rocket League :</label>
                         <select id="rank-rl">
                             <option value="Non joué">Non joué (0 pts)</option>
-                            <option value="Bronze">Bronze (50 pts)</option>
-                            <option value="Argent">Argent (80 pts)</option>
-                            <option value="Or">Or (150 pts)</option>
-                            <option value="Platine">Platine (230 pts)</option>
-                            <option value="Diamant">Diamant (325 pts)</option>
-                            <option value="Champion">Champion (500 pts)</option>
-                            <option value="GC">GC (850 pts)</option>
-                            <option value="SSL">SSL (1 100 pts)</option>
+                            <option value="gold">gold (150 pts)</option>
+                            <option value="Plat">Plat (230 pts)</option>
+                            <option value="Diams">Diams (325 pts)</option>
+                            <option value="Champ">Champ (500 pts)</option>
+                            <option value="Gc">Gc (850 pts)</option>
+                            <option value="Ssl">Ssl (1 100 pts)</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Rang Brawl Stars :</label>
                         <select id="rank-bs">
                             <option value="Non joué">Non joué</option>
-                            <option value="Bronze">Bronze</option>
-                            <option value="Argent">Argent</option>
-                            <option value="Or">Or</option>
-                            <option value="Diamant">Diamant</option>
-                            <option value="Mythique">Mythique</option>
+                            <option value="mythic">mythic</option>
                             <option value="Légendaire">Légendaire</option>
-                            <option value="Maître">Maître</option>
+                            <option value="Star">Star</option>
+                            <option value="Pro">Pro</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Rang Fortnite :</label>
                         <select id="rank-fn">
                             <option value="Non joué">Non joué</option>
-                            <option value="Bronze">Bronze</option>
-                            <option value="Argent">Argent</option>
-                            <option value="Or">Or</option>
-                            <option value="Platine">Platine</option>
-                            <option value="Diamant">Diamant</option>
-                            <option value="Elite">Elite</option>
+                            <option value="élite">élite</option>
                             <option value="Champion">Champion</option>
                             <option value="Unreal">Unreal</option>
                         </select>
@@ -883,39 +873,29 @@
                             <label>Peak Rank Rocket League :</label>
                             <select id="admin-edit-rank-rl">
                                 <option value="Non joué">Non joué</option>
-                                <option value="Bronze">Bronze</option>
-                                <option value="Argent">Argent</option>
-                                <option value="Or">Or</option>
-                                <option value="Platine">Platine</option>
-                                <option value="Diamant">Diamant</option>
-                                <option value="Champion">Champion</option>
-                                <option value="GC">GC</option>
-                                <option value="SSL">SSL</option>
+                                <option value="gold">gold</option>
+                                <option value="Plat">Plat</option>
+                                <option value="Diams">Diams</option>
+                                <option value="Champ">Champ</option>
+                                <option value="Gc">Gc</option>
+                                <option value="Ssl">Ssl</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Rang Brawl Stars :</label>
                             <select id="admin-edit-rank-bs">
                                 <option value="Non joué">Non joué</option>
-                                <option value="Bronze">Bronze</option>
-                                <option value="Argent">Argent</option>
-                                <option value="Or">Or</option>
-                                <option value="Diamant">Diamant</option>
-                                <option value="Mythique">Mythique</option>
+                                <option value="mythic">mythic</option>
                                 <option value="Légendaire">Légendaire</option>
-                                <option value="Maître">Maître</option>
+                                <option value="Star">Star</option>
+                                <option value="Pro">Pro</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Rang Fortnite :</label>
                             <select id="admin-edit-rank-fn">
                                 <option value="Non joué">Non joué</option>
-                                <option value="Bronze">Bronze</option>
-                                <option value="Argent">Argent</option>
-                                <option value="Or">Or</option>
-                                <option value="Platine">Platine</option>
-                                <option value="Diamant">Diamant</option>
-                                <option value="Elite">Elite</option>
+                                <option value="élite">élite</option>
                                 <option value="Champion">Champion</option>
                                 <option value="Unreal">Unreal</option>
                             </select>
@@ -1171,8 +1151,8 @@
             const rankFn = document.getElementById('rank-fn').value;
 
             const rankPoints = {
-                "Non joué": 0, "Bronze": 50, "Argent": 80, "Or": 150,
-                "Platine": 230, "Diamant": 325, "Champion": 500, "GC": 850, "SSL": 1100
+                "Non joué": 0, "gold": 150, "Plat": 230, "Diams": 325,
+                "Champ": 500, "Gc": 850, "Ssl": 1100
             };
 
             const startingPoints = rankPoints[rankRl] || 0;
