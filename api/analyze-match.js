@@ -48,14 +48,21 @@ export default async function handler(req, res) {
         const imageBuffer = await imageResponse.arrayBuffer();
         const base64Image = Buffer.from(imageBuffer).toString('base64');
 
-        // Appel API avec la version gemini-3.6-flash
+        const promptText = `Tu es un arbitre de jeu vidéo strict.
+Analyse cette image :
+1. Est-ce qu'il s'agit bien d'une capture d'écran de tableau de score / fin de match de jeu vidéo ? Si NON, renvoie exactement: {"valid": false}
+2. Si OUI, détermine le gagnant du match :
+   - Si le joueur principal (celui qui a pris la capture ou qui est indiqué gagnant/victoire) a gagné, renvoie: {"valid": true, "winner": "player"}
+   - Si l'adversaire a gagné (ou si l'écran indique Défaite), renvoie: {"valid": true, "winner": "opponent"}
+Renvoie EXCLUSIVEMENT un objet JSON strict sans aucun formatage Markdown.`;
+
         const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
                     parts: [
-                        { text: "Analyse cette capture d'écran de score. Détermine si le joueur principal a gagné ou perdu, et renvoie uniquement un format JSON strict sans markdown, sous la forme exacte: {\"winner\": \"player\"} ou {\"winner\": \"opponent\"}" },
+                        { text: promptText },
                         { inline_data: { mime_type: "image/jpeg", data: base64Image } }
                     ]
                 }]
@@ -69,7 +76,23 @@ export default async function handler(req, res) {
 
         const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
         const cleanJsonText = candidateText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const analysisResult = JSON.parse(cleanJsonText);
+        
+        let analysisResult;
+        try {
+            analysisResult = JSON.parse(cleanJsonText);
+        } catch (e) {
+            return res.status(400).json({ error: "Impossible d'analyser le contenu de l'image." });
+        }
+
+        // Vérification 1 : L'image est-elle valide ?
+        if (!analysisResult.valid) {
+            return res.status(400).json({ error: "L'image fournie n'est pas une capture d'écran de score valide." });
+        }
+
+        // Vérification 2 : Le résultat est-il clair ?
+        if (analysisResult.winner !== 'player' && analysisResult.winner !== 'opponent') {
+            return res.status(400).json({ error: "Impossible de déterminer le gagnant sur cette capture d'écran." });
+        }
 
         const supabase = createClient(
             process.env.SUPABASE_URL,
@@ -107,3 +130,4 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: error.message });
     }
 }
+ 
