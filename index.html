@@ -208,13 +208,6 @@
             border-radius: 4px;
         }
 
-        .social-container-bottom {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            text-align: center;
-        }
-
         .social-links { 
             display: flex; 
             flex-direction: column; 
@@ -576,7 +569,7 @@
                         <p><strong>ARTICLE 6 : CONFIDENTIALITÉ ET SÉCURITÉ</strong><br>
                         1. La diffusion d’informations personnelles non requises par la team est interdite.<br>
                         2. Le doxing est strictly interdit.<br>
-                        3. La divulgation de numéros de téléphone, d’informations privées ainsi que la diffusion de la description de la communauté est strictement interdite.<br>
+                        3. La divulgation de numéros de téléphone, d’informations privées ainsi que la diffusion de la description de la communauté est strictly interdite.<br>
                         4. Le partage d’informations internes ou confidentielles à la team est interdit.</p>
 
                         <p><strong>ARTICLE 7 : ÉTIQUETTE MEMBRE</strong><br>
@@ -642,18 +635,6 @@
                         <button type="submit" class="submit-btn">Envoyer la demande de Scrim</button>
                         <div id="scrim-req-status" class="status-msg"></div>
                     </form>
-                </div>
-
-            </div>
-
-            <div class="social-container-bottom">
-                <h3>🌐 Nos Réseaux & Liens Officiels</h3>
-                <div class="social-links">
-                    <a href="https://valyor-esport.vercel.app" target="_blank">💻 Site Officiel Valyor</a>
-                    <a href="https://discord.gg/V9JmJu5mtG" target="_blank">💬 Serveur Discord Valyor</a>
-                    <a href="https://whatsapp.com/channel/0029Vb6tuDa96H4YIXa7FY2N" target="_blank">📱 Chaîne WhatsApp de K-stor (14k)</a>
-                    <a href="https://whatsapp.com/channel/0029VbCdZJm9cDDij5E37w34" target="_blank">📱 Chaîne WhatsApp Valyor (500)</a>
-                    <a href="https://www.youtube.com/@VALYOR_VLR" target="_blank">📺 Chaîne YouTube Valyor</a>
                 </div>
 
                 <div class="info-box" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(30, 10, 10, 0.5); margin-top: 30px; text-align: left;">
@@ -1322,27 +1303,40 @@
             const boFormat = document.getElementById('scrim-bo').value;
             const teamName = document.getElementById('scrim-team-name').value;
             const logoFileInput = document.getElementById('scrim-team-logo');
-            const logoFile = logoFileInput.files[0];
+            const logoFile = logoFileInput ? logoFileInput.files[0] : null;
 
             let logoUrl = null;
             try {
                 if (logoFile) {
-                    const sanitizedLogoName = logoFile.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_]/g, "_");
-                    const logoPath = `logo_${Date.now()}_${sanitizedLogoName}`;
-                    const { error: uploadError } = await clientSupabase.storage.from('match-proofs').upload(logoPath, logoFile);
-                    if (uploadError) throw uploadError;
-                    const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(logoPath);
-                    logoUrl = publicUrl;
+                    const ext = logoFile.name.split('.').pop() || 'png';
+                    const cleanName = logoFile.name.replace(/[^a-zA-Z0-9]/g, "_");
+                    const logoPath = `logo_${Date.now()}_${cleanName}.${ext}`;
+
+                    // Stockage dans le bucket dédié aux logos d'équipes
+                    const { error: uploadError } = await clientSupabase.storage
+                        .from('scrim-team-logos')
+                        .upload(logoPath, logoFile, { upsert: true });
+
+                    if (uploadError) {
+                        throw new Error("Erreur d'upload du logo (Vérifiez que le bucket 'scrim-team-logos' existe sur Supabase et qu'il est Public) : " + uploadError.message);
+                    }
+
+                    const { data: publicUrlData } = clientSupabase.storage
+                        .from('scrim-team-logos')
+                        .getPublicUrl(logoPath);
+                    
+                    logoUrl = publicUrlData ? publicUrlData.publicUrl : null;
                 }
 
                 const rankRangeStr = `${scrimRankMin} à ${scrimRankMax}`;
+                const formattedDate = scrimDate ? new Date(scrimDate).toISOString() : new Date().toISOString();
 
                 const { error } = await clientSupabase.from('scrim_requests').insert([{
                     user_id: user.id,
                     user_email: user.email,
                     game: scrimGame,
                     rank_range: rankRangeStr,
-                    scrim_date: scrimDate,
+                    scrim_date: formattedDate,
                     format: format,
                     bo_format: boFormat,
                     team_name: teamName,
@@ -1352,13 +1346,13 @@
                 }]);
 
                 if (error) {
-                    statusDiv.innerText = "❌ Erreur : " + error.message;
+                    statusDiv.innerText = "❌ Erreur lors de l'envoi de la demande : " + error.message;
                 } else {
                     statusDiv.innerText = "✅ Demande de scrim envoyée avec succès aux administrateurs !";
                     document.getElementById('scrim-request-form').reset();
                 }
             } catch (err) {
-                statusDiv.innerText = "❌ Erreur lors de l'envoi du logo : " + err.message;
+                statusDiv.innerText = "❌ Erreur : " + err.message;
             }
         });
 
@@ -1395,7 +1389,7 @@
                 });
 
                 const logoHtml = s.team_logo_url 
-                    ? `<div style="margin-right: 12px;"><a href="${s.team_logo_url}" target="_blank"><img src="${s.team_logo_url}" alt="Logo" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(124, 58, 237, 0.4);"></a></div>` 
+                    ? `<div style="margin-right: 12px;"><a href="${s.team_logo_url}" target="_blank"><img src="${s.team_logo_url}" alt="Logo" onerror="this.style.display='none'" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(124, 58, 237, 0.4);"></a></div>` 
                     : '';
 
                 container.innerHTML += `
@@ -1452,7 +1446,10 @@
             const container = document.getElementById('admin-proofs-list');
             container.innerHTML = '<p style="color: #9ca3af;">Chargement des preuves...</p>';
             
-            const { data: files, error } = await clientSupabase.storage.from('match-proofs').list('', { limit: 50, sortBy: { column: 'created_at', order: 'desc' } });
+            // On ne consulte STRICTEMENT que le bucket 'match-proofs'
+            const { data: files, error } = await clientSupabase.storage
+                .from('match-proofs')
+                .list('', { limit: 50, sortBy: { column: 'created_at', order: 'desc' } });
             
             if (error || !files || files.length === 0) {
                 container.innerHTML = '<p style="color: #9ca3af;">Aucune photo de preuve trouvée dans le bucket.</p>';
@@ -1469,7 +1466,7 @@
                 container.innerHTML += `
                     <div style="background: rgba(20, 20, 35, 0.8); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
                         <a href="${publicUrl}" target="_blank">
-                            <img src="${publicUrl}" alt="${file.name}" style="max-width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <img src="${publicUrl}" alt="${file.name}" onerror="this.style.display='none'" style="max-width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1);">
                         </a>
                         <p style="font-size: 0.75rem; color: #d1d5db; margin: 4px 0; word-break: break-all;">${file.name}</p>
                         <p style="font-size: 0.7rem; color: #9ca3af; margin: 0;">${createdAt}</p>
@@ -1629,7 +1626,9 @@
             const { data: players } = await clientSupabase.from('profiles').select('id, username');
             if (players) {
                 select.innerHTML = '<option value="">-- Sélectionnez un joueur --</option>';
-                players.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.username}</option>`; });
+                players.forEach(p => { 
+                    select.innerHTML += `<option value="${p.id}" data-username="${p.username}">${p.username}</option>`; 
+                });
             }
         }
 
@@ -1672,7 +1671,11 @@
             e.preventDefault();
             const statusDiv = document.getElementById('match-status');
             const game = document.getElementById('match-game').value; 
-            const opponentId = document.getElementById('match-opponent').value;
+            const selectOpponent = document.getElementById('match-opponent');
+            const opponentId = selectOpponent.value;
+            const selectedOption = selectOpponent.options[selectOpponent.selectedIndex];
+            const opponentName = selectedOption ? (selectedOption.getAttribute('data-username') || selectedOption.text) : "Adversaire";
+
             const fileInput = document.getElementById('match-file');
             const file = fileInput.files[0];
 
@@ -1680,10 +1683,7 @@
             statusDiv.innerText = "Envoi de la preuve...";
 
             try {
-                const opponentPlayer = playersData.find(p => p.id === opponentId);
-                const opponentName = opponentPlayer ? opponentPlayer.username : "Adversaire";
-
-                const sanitizedFileName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_]/g, "_");
+                const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
                 const filePath = `${Date.now()}_${sanitizedFileName}`;
 
                 const { error: uploadError } = await clientSupabase.storage.from('match-proofs').upload(filePath, file);
