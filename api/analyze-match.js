@@ -45,6 +45,8 @@ export default async function handler(req, res) {
 
         const imageResponse = await fetch(image_url);
         if (!imageResponse.ok) throw new Error("Impossible de récupérer l'image.");
+        
+        const mimeType = imageResponse.headers.get('content-type') || 'image/jpeg';
         const imageBuffer = await imageResponse.arrayBuffer();
         const base64Image = Buffer.from(imageBuffer).toString('base64');
 
@@ -54,32 +56,34 @@ Analyse cette image :
 2. Si OUI, détermine le gagnant du match :
    - Si le joueur principal (celui qui a pris la capture ou qui est indiqué gagnant/victoire) a gagné, renvoie: {"valid": true, "winner": "player"}
    - Si l'adversaire a gagné (ou si l'écran indique Défaite), renvoie: {"valid": true, "winner": "opponent"}
-Renvoie EXCLUSIVEMENT un objet JSON strict sans aucun formatage Markdown.`;
+Renvoie EXCLUSIVEMENT un objet JSON strict.`;
 
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
                     parts: [
                         { text: promptText },
-                        { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+                        { inline_data: { mime_type: mimeType, data: base64Image } }
                     ]
-                }]
+                }],
+                generationConfig: {
+                    response_mime_type: "application/json"
+                }
             })
         });
 
         const geminiData = await geminiResponse.json();
         if (!geminiResponse.ok) {
-            throw new Error(geminiData.error?.message || "Erreur Gemini");
+            throw new Error(geminiData.error?.message || "Erreur Gemini API");
         }
 
         const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        const cleanJsonText = candidateText.replace(/```json/g, '').replace(/```/g, '').trim();
         
         let analysisResult;
         try {
-            analysisResult = JSON.parse(cleanJsonText);
+            analysisResult = JSON.parse(candidateText);
         } catch (e) {
             return res.status(400).json({ error: "Impossible d'analyser le contenu de l'image." });
         }
@@ -130,4 +134,3 @@ Renvoie EXCLUSIVEMENT un objet JSON strict sans aucun formatage Markdown.`;
         return res.status(500).json({ error: error.message });
     }
 }
- 
