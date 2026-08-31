@@ -539,7 +539,7 @@
 
                         <p><strong>ARTICLE 6 : CONFIDENTIALITÉ ET SÉCURITÉ</strong><br>
                         1. La diffusion d’informations personnelles non requises par la team est interdite.<br>
-                        2. Le doxing est strictement interdit.<br>
+                        2. Le doxing est strictly interdit.<br>
                         3. La divulgation de numéros de téléphone, d’informations privées ainsi que la diffusion de la description de la communauté est strictement interdite.<br>
                         4. Le partage d’informations internes ou confidentielles à la team est interdit.</p>
 
@@ -598,6 +598,20 @@
                 <div class="form-group">
                     <label>Numéro de téléphone :</label>
                     <input type="tel" id="phone" placeholder="ex: 06XXXXXXXX">
+                </div>
+
+                <div class="form-group">
+                    <label>Rôle dans la structure :</label>
+                    <select id="user-role">
+                        <option value="Joueur">Joueur</option>
+                        <option value="Recruteur">Recruteur</option>
+                        <option value="Joueur & Recruteur">Joueur & Recruteur</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Content Manager">Content Manager</option>
+                        <option value="Modérateur">Modérateur</option>
+                        <option value="Graphiste">Graphiste</option>
+                        <option value="Propriétaire">Propriétaire</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -668,8 +682,16 @@
                 </p>
                 <form id="match-form">
                     <div class="form-group">
+                        <label>Jeu concerné :</label>
+                        <select id="match-game" required>
+                            <option value="Rocket League">Rocket League</option>
+                            <option value="Brawl Stars">Brawl Stars</option>
+                            <option value="Fortnite">Fortnite</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Adversaire affronté :</label>
-                        <select id="match-opponent">
+                        <select id="match-opponent" required>
                             <option value="">-- Sélectionnez un joueur enregistré --</option>
                         </select>
                     </div>
@@ -694,7 +716,7 @@
                         </tr>
                     </thead>
                     <tbody id="history-body">
-                        <tr><td colspan="4" style="text-align:center;">Aucun historique enregistré pour le moment.</td></tr>
+                        <tr><td colspan="4" style="text-align:center;">Chargement de l'historique...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -712,19 +734,20 @@
                 <div class="reward-card"><div>Discord secret (RL, FTN)</div><div class="cost">3 000 pts</div></div>
             </div>
 
-            <h2 style="margin-top: 40px;">Classement Général Rocket League</h2>
+            <h2 style="margin-top: 40px;">Classement Général Valyor Esport</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Rang</th>
                         <th>Joueur</th>
+                        <th>Rôle</th>
                         <th>Points RL</th>
                         <th>Rang BS</th>
                         <th>Rang FN</th>
                     </tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <tr><td colspan="5" style="text-align:center;">Chargement...</td></tr>
+                    <tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -780,6 +803,20 @@
                     <div class="form-group">
                         <label>Nouveau Pseudo :</label>
                         <input type="text" id="admin-edit-username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rôle dans la structure :</label>
+                        <select id="admin-edit-role">
+                            <option value="Joueur">Joueur</option>
+                            <option value="Recruteur">Recruteur</option>
+                            <option value="Joueur & Recruteur">Joueur & Recruteur</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Content Manager">Content Manager</option>
+                            <option value="Modérateur">Modérateur</option>
+                            <option value="Graphiste">Graphiste</option>
+                            <option value="Propriétaire">Propriétaire</option>
+                        </select>
                     </div>
 
                     <div class="grid-3">
@@ -891,7 +928,10 @@
                         button.classList.add('active');
 
                         if (tab.sec === 'sec-classement' && clientSupabase) loadLeaderboard();
-                        if (tab.sec === 'sec-matchs-historique' && clientSupabase) loadOpponents();
+                        if (tab.sec === 'sec-matchs-historique' && clientSupabase) {
+                            loadOpponents();
+                            loadHistory();
+                        }
                         if (tab.sec === 'sec-admin' && clientSupabase) loadAdminPanel();
                     });
                 }
@@ -910,6 +950,7 @@
                 document.getElementById('subtab-soumettre').classList.remove('active');
                 document.getElementById('subcontent-historique').style.display = 'block';
                 document.getElementById('subcontent-soumettre').style.display = 'none';
+                loadHistory();
             });
 
             // Sous-onglets Panel Admin
@@ -1025,6 +1066,7 @@
             const password = document.getElementById('password').value;
             const username = document.getElementById('username').value;
             const phone = document.getElementById('phone').value;
+            const role = document.getElementById('user-role').value;
             const youtubeLink = document.getElementById('youtube-link').value;
             const rankRl = document.getElementById('rank-rl').value;
             const rankBs = document.getElementById('rank-bs').value;
@@ -1044,6 +1086,7 @@
                     data: { 
                         username: username, 
                         phone: phone,
+                        role: role,
                         youtube_link: youtubeLink,
                         rank_rl: rankRl,
                         rank_bs: rankBs,
@@ -1063,6 +1106,7 @@
                     .from('profiles')
                     .update({ 
                         phone: phone,
+                        role: role,
                         youtube_link: youtubeLink,
                         rank_rl: rankRl,
                         rank_bs: rankBs,
@@ -1083,7 +1127,7 @@
             selectPoints.innerHTML = '<option value="">-- Chargement... --</option>';
             selectEdit.innerHTML = '<option value="">-- Chargement... --</option>';
             
-            const { data, error } = await clientSupabase.from('profiles').select('id, username, points_rl, rank_rl, rank_bs, rank_fn').order('username');
+            const { data, error } = await clientSupabase.from('profiles').select('id, username, role, points_rl, rank_rl, rank_bs, rank_fn').order('username');
             
             if (data) {
                 playersData = data; 
@@ -1103,6 +1147,7 @@
             const player = playersData.find(p => p.id === selectedId);
             if (player) {
                 document.getElementById('admin-edit-username').value = player.username || '';
+                document.getElementById('admin-edit-role').value = player.role || 'Joueur';
                 document.getElementById('admin-edit-rank-rl').value = player.rank_rl || 'Non joué';
                 document.getElementById('admin-edit-rank-bs').value = player.rank_bs || 'Non joué';
                 document.getElementById('admin-edit-rank-fn').value = player.rank_fn || 'Non joué';
@@ -1120,7 +1165,7 @@
             statusDiv.innerText = "Mise à jour en cours...";
 
             const player = playersData.find(p => p.id === playerId);
-            let currentPoints = player.points_rl || 0;
+            let currentPoints = player ? (player.points_rl || 0) : 0;
             let newPoints = action === 'add' ? currentPoints + amount : currentPoints - amount;
             if (newPoints < 0) newPoints = 0;
 
@@ -1143,6 +1188,7 @@
             const statusDiv = document.getElementById('admin-profile-status');
             const playerId = document.getElementById('admin-edit-player').value;
             const newUsername = document.getElementById('admin-edit-username').value;
+            const newRole = document.getElementById('admin-edit-role').value;
             const newRankRl = document.getElementById('admin-edit-rank-rl').value;
             const newRankBs = document.getElementById('admin-edit-rank-bs').value;
             const newRankFn = document.getElementById('admin-edit-rank-fn').value;
@@ -1158,6 +1204,7 @@
                 .from('profiles')
                 .update({ 
                     username: newUsername,
+                    role: newRole,
                     rank_rl: newRankRl,
                     rank_bs: newRankBs,
                     rank_fn: newRankFn
@@ -1181,10 +1228,36 @@
             }
         }
 
+        async function loadHistory() {
+            const tbody = document.getElementById('history-body');
+            const { data: matches, error } = await clientSupabase
+                .from('matches')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error || !matches || matches.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Aucun historique enregistré pour le moment.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            matches.forEach(m => {
+                const date = new Date(m.created_at).toLocaleDateString('fr-FR');
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${m.game || 'Rocket League'}</td>
+                        <td>${m.players_summary || 'Match'}</td>
+                        <td><span style="color:${m.status === 'Validé' ? '#4ade80' : '#f87171'}">${m.status || 'En attente'}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
         document.getElementById('match-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('match-status');
-            const game = "Rocket League"; 
+            const game = document.getElementById('match-game').value; 
             const opponentId = document.getElementById('match-opponent').value;
             const fileInput = document.getElementById('match-file');
             const file = fileInput.files[0];
@@ -1236,22 +1309,24 @@
 
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
-            const { data: players, error } = await clientSupabase.from('profiles').select('username, points_rl, rank_bs, rank_fn').order('points_rl', { ascending: false });
+            const { data: players, error } = await clientSupabase.from('profiles').select('username, role, points_rl, rank_bs, rank_fn').order('points_rl', { ascending: false });
 
             if (error) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Erreur de chargement.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur de chargement.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = '';
             players.forEach((p, index) => {
                 const total = p.points_rl || 0;
+                const role = p.role || 'Joueur';
                 const bs = p.rank_bs || 'Non joué';
                 const fn = p.rank_fn || 'Non joué';
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>#${index + 1}</strong></td>
                         <td>${p.username || 'Joueur Anonyme'}</td>
+                        <td><span style="color: #c084fc; font-weight: 600;">${role}</span></td>
                         <td><strong>${total}</strong></td>
                         <td>${bs}</td>
                         <td>${fn}</td>
