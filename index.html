@@ -685,13 +685,22 @@
         <div id="sec-inscription" class="section">
             <h2>Créer un compte Joueur</h2>
             <form id="signup-form">
-                <div class="form-group"><label>Email :</label><input type="email" id="email" required></div>
+                <div class="form-group"><label>Email de connexion :</label><input type="email" id="email" required></div>
                 <div class="form-group"><label>Mot de passe :</label><input type="password" id="password" required></div>
                 <div class="form-group"><label>Pseudo en jeu / Site :</label><input type="text" id="username" required></div>
                 
-                <div class="form-group">
-                    <label>Numéro de téléphone :</label>
-                    <input type="tel" id="phone" placeholder="ex: 06XXXXXXXX">
+                <div class="grid-3" style="grid-template-columns: 1fr 2fr;">
+                    <div class="form-group">
+                        <label>Type de contact :</label>
+                        <select id="contact-type" required>
+                            <option value="Numéro de téléphone">Téléphone</option>
+                            <option value="Adresse Email">Email alternatif</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Votre contact (Numéro ou Email) :</label>
+                        <input type="text" id="contact-value" placeholder="ex: 06XXXXXXXX ou contact@mail.com" required>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -819,7 +828,19 @@
                 <div class="reward-card"><div>Discord secret (RL, FTN)</div><div class="cost">3 000 pts</div></div>
             </div>
 
-            <h2 style="margin-top: 40px;">Classement Général Valyor Esport</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="margin: 0;">Classement Général Valyor Esport</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="leaderboard-filter" style="margin: 0; color: #c084fc; font-size: 0.9rem;">Filtrer par :</label>
+                    <select id="leaderboard-filter" style="width: auto; padding: 8px 14px;">
+                        <option value="points_rl">Points RL</option>
+                        <option value="rank_rl">Rang RL</option>
+                        <option value="rank_bs">Rang BS</option>
+                        <option value="rank_fn">Rang FN</option>
+                    </select>
+                </div>
+            </div>
+
             <table>
                 <thead>
                     <tr>
@@ -890,6 +911,20 @@
                         <input type="text" id="admin-edit-username" required>
                     </div>
 
+                    <div class="grid-3" style="grid-template-columns: 1fr 2fr;">
+                        <div class="form-group">
+                            <label>Type de contact :</label>
+                            <select id="admin-edit-contact-type">
+                                <option value="Numéro de téléphone">Téléphone</option>
+                                <option value="Adresse Email">Email alternatif</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valeur du contact :</label>
+                            <input type="text" id="admin-edit-contact-value" required>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label>Rôle dans la structure :</label>
                         <select id="admin-edit-role">
@@ -956,7 +991,7 @@
                     <div class="form-group">
                         <label>Sélectionner le scrim à supprimer :</label>
                         <select id="admin-delete-scrim-select">
-                            <option value="">-- Chargement des demandes --</option>
+                            <option value="">-- Aucun scrim disponible --</option>
                         </select>
                     </div>
                     <button type="button" class="submit-btn" style="background: linear-gradient(135deg, #ef4444, #b91c1c); margin-top: 5px;" onclick="deleteSelectedScrim()">Supprimer ce Scrim</button>
@@ -1001,6 +1036,10 @@
             "Fortnite": ["Non classé", "élite", "Champion", "Unreal"]
         };
 
+        const rankWeightsRl = { "Non joué": 0, "gold": 1, "Plat": 2, "Diams": 3, "Champ": 4, "Gc": 5, "Ssl": 6 };
+        const rankWeightsBs = { "Non joué": 0, "mythic": 1, "Légendaire": 2, "Star": 3, "Pro": 4 };
+        const rankWeightsFn = { "Non joué": 0, "élite": 1, "Champion": 2, "Unreal": 3 };
+
         window.addEventListener('DOMContentLoaded', async () => {
             if (typeof supabase !== 'undefined') {
                 clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1024,6 +1063,11 @@
             if (scrimGameSelect && scrimRankMinSelect && scrimRankMaxSelect) {
                 scrimGameSelect.addEventListener('change', updateScrimRanks);
                 updateScrimRanks();
+            }
+
+            const leaderboardFilter = document.getElementById('leaderboard-filter');
+            if (leaderboardFilter) {
+                leaderboardFilter.addEventListener('change', loadLeaderboard);
             }
 
             if (clientSupabase) {
@@ -1214,7 +1258,8 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const username = document.getElementById('username').value;
-            const phone = document.getElementById('phone').value;
+            const contactType = document.getElementById('contact-type').value;
+            const contactValue = document.getElementById('contact-value').value;
             const role = document.getElementById('user-role').value;
             const youtubeLink = document.getElementById('youtube-link').value;
             const rankRl = document.getElementById('rank-rl').value;
@@ -1234,7 +1279,8 @@
                 options: { 
                     data: { 
                         username: username, 
-                        phone: phone,
+                        contact_type: contactType,
+                        contact_value: contactValue,
                         role: role,
                         youtube_link: youtubeLink,
                         rank_rl: rankRl,
@@ -1507,6 +1553,8 @@
             const player = playersData.find(p => p.id === selectedId);
             if (player) {
                 document.getElementById('admin-edit-username').value = player.username || '';
+                document.getElementById('admin-edit-contact-type').value = player.contact_type || 'Numéro de téléphone';
+                document.getElementById('admin-edit-contact-value').value = player.contact_value || '';
                 document.getElementById('admin-edit-role').value = player.role || 'Joueur';
                 document.getElementById('admin-edit-rank-rl').value = player.rank_rl || 'Non joué';
                 document.getElementById('admin-edit-rank-bs').value = player.rank_bs || 'Non joué';
@@ -1546,6 +1594,8 @@
             const statusDiv = document.getElementById('admin-profile-status');
             const playerId = document.getElementById('admin-edit-player').value;
             const newUsername = document.getElementById('admin-edit-username').value;
+            const newContactType = document.getElementById('admin-edit-contact-type').value;
+            const newContactValue = document.getElementById('admin-edit-contact-value').value;
             const newRole = document.getElementById('admin-edit-role').value;
             const newRankRl = document.getElementById('admin-edit-rank-rl').value;
             const newRankBs = document.getElementById('admin-edit-rank-bs').value;
@@ -1557,6 +1607,8 @@
 
             const { error } = await clientSupabase.from('profiles').update({ 
                 username: newUsername,
+                contact_type: newContactType,
+                contact_value: newContactValue,
                 role: newRole,
                 rank_rl: newRankRl,
                 rank_bs: newRankBs,
@@ -1654,18 +1706,31 @@
 
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-body');
+            const filter = document.getElementById('leaderboard-filter') ? document.getElementById('leaderboard-filter').value : 'points_rl';
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>';
 
             const { data: players, error } = await clientSupabase
                 .from('profiles')
                 .select('*')
-                .neq('show_in_leaderboard', false)
-                .order('points_rl', { ascending: false });
+                .neq('show_in_leaderboard', false);
 
             if (error || !players || players.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucun joueur trouvé.</td></tr>';
                 return;
             }
+
+            players.sort((a, b) => {
+                if (filter === 'points_rl') {
+                    return (b.points_rl || 0) - (a.points_rl || 0);
+                } else if (filter === 'rank_rl') {
+                    return (rankWeightsRl[b.rank_rl] || 0) - (rankWeightsRl[a.rank_rl] || 0);
+                } else if (filter === 'rank_bs') {
+                    return (rankWeightsBs[b.rank_bs] || 0) - (rankWeightsBs[a.rank_bs] || 0);
+                } else if (filter === 'rank_fn') {
+                    return (rankWeightsFn[b.rank_fn] || 0) - (rankWeightsFn[a.rank_fn] || 0);
+                }
+                return 0;
+            });
 
             tbody.innerHTML = '';
             players.forEach((p, index) => {
