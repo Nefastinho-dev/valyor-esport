@@ -1340,7 +1340,6 @@
             
             container.innerHTML = '';
             for (const file of files) {
-                // Ignore folder placeholders or directories like 'matches'
                 if (!file.id || file.name === 'matches' || !file.name.includes('.')) continue;
                 
                 const { data: { publicUrl } } = clientSupabase.storage.from('match-proofs').getPublicUrl(file.name);
@@ -1366,8 +1365,16 @@
             const chatSec = document.getElementById(`chat-section-${id}`);
             const isVisible = chatSec.style.display === 'block';
             chatSec.style.display = isVisible ? 'none' : 'block';
+            
             if (!isVisible) {
-                await clientSupabase.from('scrim_requests').update({ status: 'negociation' }).eq('id', id);
+                const { error } = await clientSupabase
+                    .from('scrim_requests')
+                    .update({ status: 'negociation' })
+                    .eq('id', id);
+                
+                if (error) {
+                    alert("❌ Erreur lors du passage en négociation : " + error.message);
+                }
             }
         };
 
@@ -1376,32 +1383,88 @@
             const text = input.value.trim();
             if (!text) return;
 
-            const { data: scrim } = await clientSupabase.from('scrim_requests').select('chat_messages').eq('id', id).single();
+            const { data: scrim, error: fetchError } = await clientSupabase
+                .from('scrim_requests')
+                .select('chat_messages')
+                .eq('id', id)
+                .single();
+
+            if (fetchError) {
+                alert("❌ Erreur de récupération du chat : " + fetchError.message);
+                return;
+            }
+
             const messages = scrim?.chat_messages || [];
             messages.push({ sender: 'Admin', text: text, time: new Date().toISOString() });
 
-            await clientSupabase.from('scrim_requests').update({ chat_messages: messages }).eq('id', id);
+            const { error: updateError } = await clientSupabase
+                .from('scrim_requests')
+                .update({ chat_messages: messages })
+                .eq('id', id);
+
+            if (updateError) {
+                alert("❌ Erreur d'envoi du message : " + updateError.message);
+                return;
+            }
+
             input.value = '';
             loadAdminScrims();
         };
 
         window.updateScrimStatus = async function(id, newStatus) {
             if (newStatus === 'refuse') {
-                await clientSupabase.from('scrim_requests').delete().eq('id', id);
+                if (!confirm("Voulez-vous vraiment refuser et supprimer cette demande ?")) return;
+                
+                const { error } = await clientSupabase
+                    .from('scrim_requests')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    alert("❌ Erreur lors de la suppression : " + error.message);
+                    return;
+                }
+                
                 alert("Demande de scrim refusée et supprimée.");
             } else if (newStatus === 'valide') {
-                const { data: req } = await clientSupabase.from('scrim_requests').select('*').eq('id', id).single();
-                if (req) {
-                    await clientSupabase.from('matches').insert([{
+                const { data: req, error: fetchError } = await clientSupabase
+                    .from('scrim_requests')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (fetchError || !req) {
+                    alert("❌ Erreur de récupération de la demande : " + (fetchError?.message || "Introuvable"));
+                    return;
+                }
+
+                const { error: insertError } = await clientSupabase
+                    .from('matches')
+                    .insert([{
                         game: `${req.game || 'Scrim'} (${req.format})`,
                         players_summary: `Valyor vs ${req.user_email} (Rangs : ${req.rank_range})`,
                         status: 'À venir',
-                        created_at: req.scrim_date
+                        created_at: req.scrim_date ? new Date(req.scrim_date).toISOString() : new Date().toISOString()
                     }]);
+
+                if (insertError) {
+                    alert("❌ Erreur lors de l'ajout dans les matchs à venir : " + insertError.message);
+                    return;
                 }
-                await clientSupabase.from('scrim_requests').delete().eq('id', id);
-                alert("Scrim validé ! Il a été déplacé vers l'historique des matchs à venir.");
+
+                const { error: deleteError } = await clientSupabase
+                    .from('scrim_requests')
+                    .delete()
+                    .eq('id', id);
+
+                if (deleteError) {
+                    alert("❌ Erreur lors du nettoyage de la demande : " + deleteError.message);
+                    return;
+                }
+
+                alert("✅ Scrim validé avec succès ! Il a été déplacé vers l'historique des matchs à venir.");
             }
+            
             loadAdminScrims();
         };
 
