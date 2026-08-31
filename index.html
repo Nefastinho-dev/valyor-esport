@@ -573,7 +573,7 @@
                 <!-- FORMULAIRE DE DEMANDE DE SCRIM -->
                 <div class="info-box" style="border-color: rgba(59, 130, 246, 0.4); background: rgba(15, 20, 35, 0.7);">
                     <h3>⚔️ Demande de Scrim</h3>
-                    <p style="font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">Proposez un match amical (Scrim) à nos équipes. Une notification sera transmise à l'administration.</p>
+                    <p style="font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">Proposez un match amical (Scrim) à nos équipes. Vous devez posséder un compte enregistré pour envoyer une demande.</p>
                     <form id="scrim-request-form">
                         <div class="form-group">
                             <label>Fourchette de rang moyen de l'équipe :</label>
@@ -925,6 +925,11 @@
                         </div>
                     </div>
 
+                    <div class="form-group checkbox-group" style="margin-top: 15px;">
+                        <input type="checkbox" id="admin-edit-show-leaderboard" checked>
+                        <label for="admin-edit-show-leaderboard" style="margin:0; color:#d1d5db;">Afficher dans le classement</label>
+                    </div>
+
                     <button type="submit" class="submit-btn">Sauvegarder les modifications</button>
                     <div id="admin-profile-status" class="status-msg" style="color: #fca5a5;"></div>
                 </form>
@@ -1178,7 +1183,8 @@
                         rank_rl: rankRl,
                         rank_bs: rankBs,
                         rank_fn: rankFn,
-                        points_rl: startingPoints 
+                        points_rl: startingPoints,
+                        show_in_leaderboard: true
                     } 
                 }
             });
@@ -1198,7 +1204,8 @@
                         rank_rl: rankRl,
                         rank_bs: rankBs,
                         rank_fn: rankFn,
-                        points_rl: startingPoints 
+                        points_rl: startingPoints,
+                        show_in_leaderboard: true
                     })
                     .eq('id', data.user.id);
             }
@@ -1215,7 +1222,7 @@
 
             const { data: { user } } = await clientSupabase.auth.getUser();
             if (!user) {
-                statusDiv.innerText = "❌ Vous devez être connecté pour demander un Scrim.";
+                statusDiv.innerText = "❌ Vous devez être connecté et enregistré pour demander un Scrim.";
                 return;
             }
 
@@ -1276,8 +1283,8 @@
                         <div id="chat-section-${s.id}" style="${s.status === 'negociation' ? 'display:block;' : 'display:none;'}">
                             <label style="font-size: 0.85rem;">Discussion / Négociation :</label>
                             <div class="chat-box" id="chat-box-${s.id}">${messagesHtml || '<em style="color:#777">Aucun message</em>'}</div>
-                            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                                <input type="text" id="chat-input-${s.id}" placeholder="Écrire un message...">
+                            <div style="display: flex; gap: 5px; margin-bottom: 10px;" onsubmit="event.preventDefault();">
+                                <input type="text" id="chat-input-${s.id}" placeholder="Écrire un message..." onkeypress="if(event.key === 'Enter') sendScrimMessage('${s.id}')">
                                 <button type="button" class="nav-btn" onclick="sendScrimMessage('${s.id}')">Envoyer</button>
                             </div>
                         </div>
@@ -1318,9 +1325,8 @@
         window.updateScrimStatus = async function(id, newStatus) {
             if (newStatus === 'refuse') {
                 await clientSupabase.from('scrim_requests').delete().eq('id', id);
-                alert("Demande de scrim supprimée.");
+                alert("Demande de scrim refusée et supprimée.");
             } else if (newStatus === 'valide') {
-                // Récupérer les détails pour les stocker dans l'historique général des matchs/scrims
                 const { data: req } = await clientSupabase.from('scrim_requests').select('*').eq('id', id).single();
                 if (req) {
                     await clientSupabase.from('matches').insert([{
@@ -1331,7 +1337,7 @@
                     }]);
                 }
                 await clientSupabase.from('scrim_requests').delete().eq('id', id);
-                alert("Scrim validé ! Il apparaît désormais dans l'historique avec le statut 'À venir'.");
+                alert("Scrim validé ! Il a été déplacé vers l'historique des matchs à venir.");
             }
             loadAdminScrims();
         };
@@ -1343,7 +1349,7 @@
             selectPoints.innerHTML = '<option value="">-- Chargement... --</option>';
             selectEdit.innerHTML = '<option value="">-- Chargement... --</option>';
             
-            const { data, error } = await clientSupabase.from('profiles').select('id, username, role, points_rl, rank_rl, rank_bs, rank_fn').order('username');
+            const { data, error } = await clientSupabase.from('profiles').select('id, username, role, points_rl, rank_rl, rank_bs, rank_fn, show_in_leaderboard').order('username');
             
             if (data) {
                 playersData = data; 
@@ -1366,6 +1372,7 @@
                 document.getElementById('admin-edit-rank-rl').value = player.rank_rl || 'Non joué';
                 document.getElementById('admin-edit-rank-bs').value = player.rank_bs || 'Non joué';
                 document.getElementById('admin-edit-rank-fn').value = player.rank_fn || 'Non joué';
+                document.getElementById('admin-edit-show-leaderboard').checked = player.show_in_leaderboard !== false;
             }
         });
 
@@ -1407,6 +1414,7 @@
             const newRankRl = document.getElementById('admin-edit-rank-rl').value;
             const newRankBs = document.getElementById('admin-edit-rank-bs').value;
             const newRankFn = document.getElementById('admin-edit-rank-fn').value;
+            const showInLeaderboard = document.getElementById('admin-edit-show-leaderboard').checked;
 
             if (!playerId) {
                 statusDiv.innerText = "❌ Veuillez sélectionner un joueur.";
@@ -1422,7 +1430,8 @@
                     role: newRole,
                     rank_rl: newRankRl,
                     rank_bs: newRankBs,
-                    rank_fn: newRankFn
+                    rank_fn: newRankFn,
+                    show_in_leaderboard: showInLeaderboard
                 })
                 .eq('id', playerId);
 
@@ -1528,7 +1537,8 @@
             try {
                 const { data: players, error } = await clientSupabase
                     .from('profiles')
-                    .select('username, role, points_rl, rank_bs, rank_fn')
+                    .select('username, role, points_rl, rank_bs, rank_fn, show_in_leaderboard')
+                    .neq('show_in_leaderboard', false)
                     .order('points_rl', { ascending: false, nullsFirst: false });
 
                 if (error) {
