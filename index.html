@@ -275,7 +275,7 @@
             letter-spacing: 0.3px;
         }
 
-        input, select {
+        input, select, textarea {
             padding: 12px 16px;
             background-color: rgba(10, 10, 15, 0.8);
             color: white;
@@ -287,7 +287,7 @@
             transition: all 0.3s ease;
         }
 
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
@@ -441,6 +441,25 @@
             filter: brightness(1.15);
         }
 
+        .scrim-req-card {
+            background: rgba(20, 20, 35, 0.8);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .chat-box {
+            background: rgba(10, 10, 15, 0.9);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
@@ -550,6 +569,48 @@
                         Aucun joueur n'est rémunéré. Une rémunération n’intervient qu’en cas de gain sur cashcup, de classement rémunéré en cashcup, ou dans le cadre d’une collaboration rémunérée mais les scrims ne sont pas rémunérés.</p>
                     </div>
                 </div>
+
+                <!-- FORMULAIRE DE DEMANDE DE SCRIM -->
+                <div class="info-box" style="border-color: rgba(59, 130, 246, 0.4); background: rgba(15, 20, 35, 0.7);">
+                    <h3>⚔️ Demande de Scrim</h3>
+                    <p style="font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">Proposez un match amical (Scrim) à nos équipes. Une notification sera transmise à l'administration.</p>
+                    <form id="scrim-request-form">
+                        <div class="form-group">
+                            <label>Fourchette de rang moyen de l'équipe :</label>
+                            <select id="scrim-rank-range" required>
+                                <option value="Bronze - Argent">Bronze - Argent</option>
+                                <option value="Or - Platine">Or - Platine</option>
+                                <option value="Diamant - Champion">Diamant - Champion</option>
+                                <option value="GC - SSL / Master">GC - SSL / Master</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date et heure :</label>
+                            <input type="datetime-local" id="scrim-datetime" required>
+                        </div>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Format :</label>
+                                <select id="scrim-format" required>
+                                    <option value="1vs1">1vs1</option>
+                                    <option value="2vs2">2vs2</option>
+                                    <option value="3vs3">3vs3</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Format en Bo :</label>
+                                <select id="scrim-bo" required>
+                                    <option value="Bo3">Bo3</option>
+                                    <option value="Bo5">Bo5</option>
+                                    <option value="Bo7">Bo7</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-btn">Envoyer la demande de Scrim</button>
+                        <div id="scrim-req-status" class="status-msg"></div>
+                    </form>
+                </div>
+
             </div>
 
             <div class="social-container-bottom">
@@ -705,14 +766,14 @@
             </div>
 
             <div id="subcontent-historique" style="display: none;">
-                <p style="color: #9ca3af; text-align: center;">Retrouvez ici l'historique complet des derniers scrims et matchs validés de la structure.</p>
+                <p style="color: #9ca3af; text-align: center;">Retrouvez ici l'historique complet des derniers scrims validés (statut : À venir / Passés) et matchs.</p>
                 <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Jeu</th>
-                            <th>Équipe / Joueurs</th>
-                            <th>Statut / Résultat</th>
+                            <th>Date & Heure</th>
+                            <th>Type / Jeu</th>
+                            <th>Détails / Équipe</th>
+                            <th>Statut</th>
                         </tr>
                     </thead>
                     <tbody id="history-body">
@@ -754,14 +815,15 @@
 
         <div id="sec-admin" class="section">
             <h2>🛠️ Panel Administrateur</h2>
-            <p style="text-align:center; color:#ccc; margin-bottom: 20px;">Gestion manuelle des points et modification des profils utilisateurs.</p>
+            <p style="text-align:center; color:#ccc; margin-bottom: 20px;">Gestion des points, modification des profils et demandes de scrims.</p>
             
             <div class="admin-subtab-container">
-                <button type="button" class="nav-btn active" id="subtab-admin-points" style="flex:1;">Gestion des Points</button>
-                <button type="button" class="nav-btn" id="subtab-admin-profiles" style="flex:1;">Modifier un Profil</button>
+                <button type="button" class="nav-btn active" id="subtab-admin-points" style="flex:1;">Points</button>
+                <button type="button" class="nav-btn" id="subtab-admin-profiles" style="flex:1;">Profils</button>
+                <button type="button" class="nav-btn" id="subtab-admin-scrims" style="flex:1;">Demandes Scrims</button>
             </div>
 
-            <!-- Sous-section Gestion des points -->
+            <!-- Gestion des points -->
             <div id="subcontent-admin-points">
                 <form id="admin-form">
                     <div class="form-group">
@@ -790,7 +852,7 @@
                 </form>
             </div>
 
-            <!-- Sous-section Modification des profils -->
+            <!-- Modification des profils -->
             <div id="subcontent-admin-profiles" style="display: none;">
                 <form id="admin-profile-form">
                     <div class="form-group">
@@ -867,6 +929,14 @@
                     <div id="admin-profile-status" class="status-msg" style="color: #fca5a5;"></div>
                 </form>
             </div>
+
+            <!-- Demandes de Scrim Admin -->
+            <div id="subcontent-admin-scrims" style="display: none;">
+                <h3 style="text-align: left; color: #60a5fa;">Gestion des Demandes de Scrims</h3>
+                <div id="admin-scrims-list">
+                    <p style="color: #9ca3af;">Chargement des demandes...</p>
+                </div>
+            </div>
         </div>
 
         <div id="sec-credits" class="section">
@@ -932,7 +1002,10 @@
                             loadOpponents();
                             loadHistory();
                         }
-                        if (tab.sec === 'sec-admin' && clientSupabase) loadAdminPanel();
+                        if (tab.sec === 'sec-admin' && clientSupabase) {
+                            loadAdminPanel();
+                            loadAdminScrims();
+                        }
                     });
                 }
             });
@@ -957,15 +1030,29 @@
             document.getElementById('subtab-admin-points').addEventListener('click', () => {
                 document.getElementById('subtab-admin-points').classList.add('active');
                 document.getElementById('subtab-admin-profiles').classList.remove('active');
+                document.getElementById('subtab-admin-scrims').classList.remove('active');
                 document.getElementById('subcontent-admin-points').style.display = 'block';
                 document.getElementById('subcontent-admin-profiles').style.display = 'none';
+                document.getElementById('subcontent-admin-scrims').style.display = 'none';
             });
 
             document.getElementById('subtab-admin-profiles').addEventListener('click', () => {
                 document.getElementById('subtab-admin-profiles').classList.add('active');
                 document.getElementById('subtab-admin-points').classList.remove('active');
+                document.getElementById('subtab-admin-scrims').classList.remove('active');
                 document.getElementById('subcontent-admin-profiles').style.display = 'block';
                 document.getElementById('subcontent-admin-points').style.display = 'none';
+                document.getElementById('subcontent-admin-scrims').style.display = 'none';
+            });
+
+            document.getElementById('subtab-admin-scrims').addEventListener('click', () => {
+                document.getElementById('subtab-admin-scrims').classList.add('active');
+                document.getElementById('subtab-admin-points').classList.remove('active');
+                document.getElementById('subtab-admin-profiles').classList.remove('active');
+                document.getElementById('subcontent-admin-scrims').style.display = 'block';
+                document.getElementById('subcontent-admin-points').style.display = 'none';
+                document.getElementById('subcontent-admin-profiles').style.display = 'none';
+                loadAdminScrims();
             });
 
             document.getElementById('btn-logout').addEventListener('click', async () => {
@@ -1120,6 +1207,135 @@
             document.getElementById('signup-form').reset();
         });
 
+        // Gestion Demande de Scrim (Utilisateur)
+        document.getElementById('scrim-request-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('scrim-req-status');
+            if (!clientSupabase) return;
+
+            const { data: { user } } = await clientSupabase.auth.getUser();
+            if (!user) {
+                statusDiv.innerText = "❌ Vous devez être connecté pour demander un Scrim.";
+                return;
+            }
+
+            statusDiv.innerText = "Envoi de la demande en cours...";
+
+            const rankRange = document.getElementById('scrim-rank-range').value;
+            const scrimDate = document.getElementById('scrim-datetime').value;
+            const format = document.getElementById('scrim-format').value;
+            const boFormat = document.getElementById('scrim-bo').value;
+
+            const { error } = await clientSupabase.from('scrim_requests').insert([{
+                user_id: user.id,
+                user_email: user.email,
+                rank_range: rankRange,
+                scrim_date: scrimDate,
+                format: format,
+                bo_format: boFormat,
+                status: 'en_attente',
+                chat_messages: []
+            }]);
+
+            if (error) {
+                statusDiv.innerText = "❌ Erreur : " + error.message;
+            } else {
+                statusDiv.innerText = "✅ Demande de scrim envoyée avec succès aux administrateurs !";
+                document.getElementById('scrim-request-form').reset();
+            }
+        });
+
+        async function loadAdminScrims() {
+            const container = document.getElementById('admin-scrims-list');
+            const { data: scrims, error } = await clientSupabase
+                .from('scrim_requests')
+                .select('*')
+                .order('scrim_date', { ascending: true });
+
+            if (error || !scrims || scrims.length === 0) {
+                container.innerHTML = '<p style="color: #9ca3af;">Aucune demande de scrim en attente.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            scrims.forEach(s => {
+                const dateFormatted = new Date(s.scrim_date).toLocaleString('fr-FR');
+                let messagesHtml = '';
+                const messages = s.chat_messages || [];
+                messages.forEach(m => {
+                    messagesHtml += `<div style="margin-bottom: 5px;"><strong>${m.sender}:</strong> ${m.text}</div>`;
+                });
+
+                container.innerHTML += `
+                    <div class="scrim-req-card" id="scrim-card-${s.id}">
+                        <p><strong>Demandeur :</strong> ${s.user_email}</p>
+                        <p><strong>Rang Moyen :</strong> ${s.rank_range} | <strong>Format :</strong> ${s.format} (${s.bo_format})</p>
+                        <p><strong>Date prévue :</strong> ${dateFormatted}</p>
+                        <p><strong>Statut :</strong> <span style="color: #60a5fa;">${s.status}</span></p>
+                        
+                        <div id="chat-section-${s.id}" style="${s.status === 'negociation' ? 'display:block;' : 'display:none;'}">
+                            <label style="font-size: 0.85rem;">Discussion / Négociation :</label>
+                            <div class="chat-box" id="chat-box-${s.id}">${messagesHtml || '<em style="color:#777">Aucun message</em>'}</div>
+                            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                                <input type="text" id="chat-input-${s.id}" placeholder="Écrire un message...">
+                                <button type="button" class="nav-btn" onclick="sendScrimMessage('${s.id}')">Envoyer</button>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #22c55e, #15803d);" onclick="updateScrimStatus('${s.id}', 'valide')">Valider</button>
+                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #eab308, #ca8a04);" onclick="toggleNegociation('${s.id}')">Négocier</button>
+                            <button type="button" class="submit-btn" style="margin:0; background: linear-gradient(135deg, #ef4444, #b91c1c);" onclick="updateScrimStatus('${s.id}', 'refuse')">Refuser</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.toggleNegociation = async function(id) {
+            const chatSec = document.getElementById(`chat-section-${id}`);
+            const isVisible = chatSec.style.display === 'block';
+            chatSec.style.display = isVisible ? 'none' : 'block';
+            if (!isVisible) {
+                await clientSupabase.from('scrim_requests').update({ status: 'negociation' }).eq('id', id);
+            }
+        };
+
+        window.sendScrimMessage = async function(id) {
+            const input = document.getElementById(`chat-input-${id}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const { data: scrim } = await clientSupabase.from('scrim_requests').select('chat_messages').eq('id', id).single();
+            const messages = scrim?.chat_messages || [];
+            messages.push({ sender: 'Admin', text: text, time: new Date().toISOString() });
+
+            await clientSupabase.from('scrim_requests').update({ chat_messages: messages }).eq('id', id);
+            input.value = '';
+            loadAdminScrims();
+        };
+
+        window.updateScrimStatus = async function(id, newStatus) {
+            if (newStatus === 'refuse') {
+                await clientSupabase.from('scrim_requests').delete().eq('id', id);
+                alert("Demande de scrim supprimée.");
+            } else if (newStatus === 'valide') {
+                // Récupérer les détails pour les stocker dans l'historique général des matchs/scrims
+                const { data: req } = await clientSupabase.from('scrim_requests').select('*').eq('id', id).single();
+                if (req) {
+                    await clientSupabase.from('matches').insert([{
+                        game: `Scrim (${req.format})`,
+                        players_summary: `Valyor vs ${req.user_email} (${req.rank_range})`,
+                        status: 'À venir',
+                        created_at: req.scrim_date
+                    }]);
+                }
+                await clientSupabase.from('scrim_requests').delete().eq('id', id);
+                alert("Scrim validé ! Il apparaît désormais dans l'historique avec le statut 'À venir'.");
+            }
+            loadAdminScrims();
+        };
+
         async function loadAdminPanel() {
             const selectPoints = document.getElementById('admin-player');
             const selectEdit = document.getElementById('admin-edit-player');
@@ -1241,13 +1457,13 @@
 
             tbody.innerHTML = '';
             matches.forEach(m => {
-                const date = new Date(m.created_at).toLocaleDateString('fr-FR');
+                const date = m.created_at ? new Date(m.created_at).toLocaleString('fr-FR') : 'Date non spécifiée';
                 tbody.innerHTML += `
                     <tr>
                         <td>${date}</td>
-                        <td>${m.game || 'Rocket League'}</td>
+                        <td>${m.game || 'Scrim'}</td>
                         <td>${m.players_summary || 'Match'}</td>
-                        <td><span style="color:${m.status === 'Validé' ? '#4ade80' : '#f87171'}">${m.status || 'En attente'}</span></td>
+                        <td><span style="color:${m.status === 'Validé' ? '#4ade80' : (m.status === 'À venir' ? '#60a5fa' : '#f87171')}">${m.status || 'En attente'}</span></td>
                     </tr>
                 `;
             });
