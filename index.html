@@ -576,17 +576,30 @@
                     <p style="font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">Proposez un match amical (Scrim) à nos équipes. Vous devez posséder un compte enregistré pour envoyer une demande.</p>
                     <form id="scrim-request-form">
                         <div class="form-group">
-                            <label>Fourchette de rang moyen de l'équipe :</label>
-                            <select id="scrim-rank-range" required>
-                                <option value="Bronze - Argent">Bronze - Argent</option>
-                                <option value="Or - Platine">Or - Platine</option>
-                                <option value="Diamant - Champion">Diamant - Champion</option>
-                                <option value="GC - SSL / Master">GC - SSL / Master</option>
+                            <label>Jeu concerné :</label>
+                            <select id="scrim-game-select" required>
+                                <option value="Rocket League">Rocket League</option>
+                                <option value="Brawl Stars">Brawl Stars</option>
+                                <option value="Fortnite">Fortnite</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Date et heure :</label>
-                            <input type="datetime-local" id="scrim-datetime" required>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Rang Minimum :</label>
+                                <select id="scrim-rank-min" required>
+                                    <!-- Dynamique -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Rang Maximum :</label>
+                                <select id="scrim-rank-max" required>
+                                    <!-- Dynamique -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date et heure :</label>
+                                <input type="datetime-local" id="scrim-datetime" required>
+                            </div>
                         </div>
                         <div class="grid-3">
                             <div class="form-group">
@@ -949,9 +962,36 @@
         let clientSupabase = null;
         let playersData = []; 
 
+        const scrimRanksMap = {
+            "Rocket League": ["Non classé", "gold", "Plat", "Diams", "Champ", "Gc", "Ssl"],
+            "Brawl Stars": ["Non classé", "mythic", "Légendaire", "Star", "Pro"],
+            "Fortnite": ["Non classé", "élite", "Champion", "Unreal"]
+        };
+
         window.addEventListener('DOMContentLoaded', async () => {
             if (typeof supabase !== 'undefined') {
                 clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+
+            // Gestion dynamique de la fourchette de rangs de scrims selon le jeu choisi (min et max)
+            const scrimGameSelect = document.getElementById('scrim-game-select');
+            const scrimRankMinSelect = document.getElementById('scrim-rank-min');
+            const scrimRankMaxSelect = document.getElementById('scrim-rank-max');
+            
+            function updateScrimRanks() {
+                const game = scrimGameSelect.value;
+                const ranks = scrimRanksMap[game] || [];
+                scrimRankMinSelect.innerHTML = '';
+                scrimRankMaxSelect.innerHTML = '';
+                ranks.forEach(r => {
+                    scrimRankMinSelect.innerHTML += `<option value="${r}">${r}</option>`;
+                    scrimRankMaxSelect.innerHTML += `<option value="${r}">${r}</option>`;
+                });
+            }
+
+            if (scrimGameSelect && scrimRankMinSelect && scrimRankMaxSelect) {
+                scrimGameSelect.addEventListener('change', updateScrimRanks);
+                updateScrimRanks();
             }
 
             if (clientSupabase) {
@@ -1202,7 +1242,7 @@
             document.getElementById('signup-form').reset();
         });
 
-        // Gestion Demande de Scrim (Utilisateur)
+        // Gestion Demande de Scrim (Utilisateur) avec fourchette de rangs (Min - Max)
         document.getElementById('scrim-request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('scrim-req-status');
@@ -1216,15 +1256,20 @@
 
             statusDiv.innerText = "Envoi de la demande en cours...";
 
-            const rankRange = document.getElementById('scrim-rank-range').value;
+            const scrimGame = document.getElementById('scrim-game-select').value;
+            const scrimRankMin = document.getElementById('scrim-rank-min').value;
+            const scrimRankMax = document.getElementById('scrim-rank-max').value;
             const scrimDate = document.getElementById('scrim-datetime').value;
             const format = document.getElementById('scrim-format').value;
             const boFormat = document.getElementById('scrim-bo').value;
 
+            const rankRangeStr = `${scrimRankMin} à ${scrimRankMax}`;
+
             const { error } = await clientSupabase.from('scrim_requests').insert([{
                 user_id: user.id,
                 user_email: user.email,
-                rank_range: rankRange,
+                game: scrimGame,
+                rank_range: rankRangeStr,
                 scrim_date: scrimDate,
                 format: format,
                 bo_format: boFormat,
@@ -1264,7 +1309,7 @@
                 container.innerHTML += `
                     <div class="scrim-req-card" id="scrim-card-${s.id}">
                         <p><strong>Demandeur :</strong> ${s.user_email}</p>
-                        <p><strong>Rang Moyen :</strong> ${s.rank_range} | <strong>Format :</strong> ${s.format} (${s.bo_format})</p>
+                        <p><strong>Jeu :</strong> ${s.game || 'Non spécifié'} | <strong>Rangs (Min → Max) :</strong> ${s.rank_range} | <strong>Format :</strong> ${s.format} (${s.bo_format})</p>
                         <p><strong>Date prévue :</strong> ${dateFormatted}</p>
                         <p><strong>Statut :</strong> <span style="color: #60a5fa;">${s.status}</span></p>
                         
@@ -1347,8 +1392,8 @@
                 const { data: req } = await clientSupabase.from('scrim_requests').select('*').eq('id', id).single();
                 if (req) {
                     await clientSupabase.from('matches').insert([{
-                        game: `Scrim (${req.format})`,
-                        players_summary: `Valyor vs ${req.user_email} (${req.rank_range})`,
+                        game: `${req.game || 'Scrim'} (${req.format})`,
+                        players_summary: `Valyor vs ${req.user_email} (Rangs : ${req.rank_range})`,
                         status: 'À venir',
                         created_at: req.scrim_date
                     }]);
@@ -1584,3 +1629,4 @@
     </script>
 </body>
 </html>
+ 
