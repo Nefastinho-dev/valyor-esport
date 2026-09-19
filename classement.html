@@ -1,1 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valyor Esport — Classement & Récompenses</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
+    <header>
+        <div class="header-left">
+            <img src="logo valyor.jpeg" alt="Valyor Logo" class="logo">
+            <span class="header-title">Valyor Esport</span>
+        </div>
+        <nav>
+            <a href="index.html" class="nav-btn" id="btn-accueil">Accueil</a>
+            <a href="connexion.html" class="nav-btn" id="btn-connexion">Connexion</a>
+            <a href="inscription.html" class="nav-btn" id="btn-inscription">Inscription</a>
+            <a href="matchs.html" class="nav-btn" id="btn-matchs-historique">Matchs & Scrims</a>
+            <a href="classement.html" class="nav-btn active" id="btn-classement">Classement & Récompenses</a>
+            <a href="admin.html" class="nav-btn" id="btn-admin" style="display: none;">Panel Admin</a>
+            <a href="credits.html" class="nav-btn" id="btn-credits">Crédits</a>
+            <a href="#" class="nav-btn logout-style" id="btn-logout">Déconnexion</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Boutique des Récompenses</h2>
+        <div class="rewards-grid">
+            <div class="reward-card"><div>Retirer l'avertissement de quelqu'un/de vous</div><div class="cost">800 pts</div></div>
+            <div class="reward-card"><div>Le droit de poster un message au choix sur les annonces</div><div class="cost">1 000 pts</div></div>
+            <div class="reward-card"><div>Participer au prochain scrim</div><div class="cost">1 200 pts</div></div>
+            <div class="reward-card"><div>Poster une vidéo sur le compte VALYOR YT</div><div class="cost">1 300 pts</div></div>
+            <div class="reward-card"><div>Le droit de poster un message au choix sur la chaîne VALYOR</div><div class="cost">1 500 pts</div></div>
+            <div class="reward-card"><div>Le droit de poster un message au choix sur la chaîne 15k</div><div class="cost">1 800 pts</div></div>
+            <div class="reward-card"><div>Discord secret (RL, FTN)</div><div class="cost">3 000 pts</div></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <h2 style="margin: 0;">Classement Général Valyor Esport</h2>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="leaderboard-filter" style="margin: 0; color: #c084fc; font-size: 0.9rem;">Filtrer par :</label>
+                <select id="leaderboard-filter" style="width: auto; padding: 8px 14px;">
+                    <option value="points_rl">Points RL</option>
+                    <option value="rank_rl">Rang RL</option>
+                    <option value="rank_bs">Rang BS</option>
+                    <option value="rank_fn">Rang FN</option>
+                </select>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Rang</th>
+                    <th>Joueur</th>
+                    <th>Rôle</th>
+                    <th>Points RL</th>
+                    <th>Rang BS</th>
+                    <th>Rang FN</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
