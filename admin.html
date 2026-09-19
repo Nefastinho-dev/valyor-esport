@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valyor Esport — Panel Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
+    <header>
+        <div class="header-left">
+            <img src="logo valyor.jpeg" alt="Valyor Logo" class="logo">
+            <span class="header-title">Valyor Esport</span>
+        </div>
+        <nav>
+            <a href="index.html" class="nav-btn" id="btn-accueil">Accueil</a>
+            <a href="connexion.html" class="nav-btn" id="btn-connexion">Connexion</a>
+            <a href="inscription.html" class="nav-btn" id="btn-inscription">Inscription</a>
+            <a href="matchs.html" class="nav-btn" id="btn-matchs-historique">Matchs & Scrims</a>
+            <a href="classement.html" class="nav-btn" id="btn-classement">Classement & Récompenses</a>
+            <a href="admin.html" class="nav-btn active" id="btn-admin">Panel Admin</a>
+            <a href="credits.html" class="nav-btn" id="btn-credits">Crédits</a>
+            <a href="#" class="nav-btn logout-style" id="btn-logout">Déconnexion</a>
+        </nav>
+    </header>
+
+    <div class="container sec-admin-box">
+        <h2>🛠️ Panel Administrateur</h2>
+        <p style="text-align:center; color:#ccc; margin-bottom: 20px;">Gestion des points, modification des profils, demandes de scrims et consultation des preuves.</p>
+        
+        <div class="admin-subtab-container">
+            <button type="button" class="nav-btn active" id="subtab-admin-points" style="flex:1;">Points</button>
+            <button type="button" class="nav-btn" id="subtab-admin-profiles" style="flex:1;">Profils</button>
+            <button type="button" class="nav-btn" id="subtab-admin-scrims" style="flex:1;">Demandes Scrims</button>
+            <button type="button" class="nav-btn" id="subtab-admin-proofs" style="flex:1;">Preuves Matchs</button>
+        </div>
+
+        <div id="subcontent-admin-points">
+            <form id="admin-form">
+                <div class="form-group">
+                    <label>Sélectionner le joueur :</label>
+                    <select id="admin-player" required>
+                        <option value="">-- Chargement des joueurs --</option>
+                    </select>
+                </div>
+                
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Action :</label>
+                        <select id="admin-action" required>
+                            <option value="add">Ajouter des points (+)</option>
+                            <option value="remove">Retirer des points (-)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Nombre de points :</label>
+                        <input type="number" id="admin-points" min="1" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Appliquer la modification</button>
+                <div id="admin-status" class="status-msg" style="color: #fca5a5;"></div>
+            </form>
+        </div>
+
+        <div id="subcontent-admin-profiles" style="display: none;">
+            <form id="admin-profile-form">
+                <div class="form-group">
+                    <label>Sélectionner le profil à modifier :</label>
+                    <select id="admin-edit-player" required>
+                        <option value="">-- Chargement des joueurs --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Nouveau Pseudo :</label>
+                    <input type="text" id="admin-edit-username" required>
+                </div>
+
+                <div class="grid-3" style="grid-template-columns: 1fr 2fr;">
+                    <div class="form-group">
+                        <label>Type de contact :</label>
+                        <select id="admin-edit-contact-type">
+                            <option value="Numéro de téléphone">Téléphone</option>
+                            <option value="Adresse Email">Email alternatif</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Valeur du contact :</label>
+                        <input type="text" id="admin-edit-contact-value" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rôle dans la structure :</label>
+                    <select id="admin-edit-role">
+                        <option value="Joueur">Joueur</option>
+                        <option value="Recruteur">Recruteur</option>
+                        <option value="Joueur & Recruteur">Joueur & Recruteur</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Content Manager">Content Manager</option>
+                        <option value="Modérateur">Modérateur</option>
+                        <option value="Graphiste">Graphiste</option>
+                        <option value="Propriétaire">Propriétaire</option>
+                    </select>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Peak Rank Rocket League :</label>
+                        <select id="admin-edit-rank-rl">
+                            <option value="Non joué">Non joué</option>
+                            <option value="gold">gold</option>
+                            <option value="Plat">Plat</option>
+                            <option value="Diams">Diams</option>
+                            <option value="Champ">Champ</option>
+                            <option value="Gc">Gc</option>
+                            <option value="Ssl">Ssl</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rang Brawl Stars :</label>
+                        <select id="admin-edit-rank-bs">
+                            <option value="Non joué">Non joué</option>
+                            <option value="mythic">mythic</option>
+                            <option value="Légendaire">Légendaire</option>
+                            <option value="Star">Star</option>
+                            <option value="Pro">Pro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rang Fortnite :</label>
+                        <select id="admin-edit-rank-fn">
+                            <option value="Non joué">Non joué</option>
+                            <option value="élite">élite</option>
+                            <option value="Champion">Champion</option>
+                            <option value="Unreal">Unreal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group" style="margin-top: 15px;">
+                    <input type="checkbox" id="admin-edit-show-leaderboard" checked>
+                    <label for="admin-edit-show-leaderboard" style="margin:0; color:#d1d5db;">Afficher dans le classement</label>
+                </div>
+
+                <button type="submit" class="submit-btn">Sauvegarder les modifications</button>
+                <div id="admin-profile-status" class="status-msg" style="color: #fca5a5;"></div>
+            </form>
+        </div>
+
+        <div id="subcontent-admin-scrims" style="display: none;">
+            <h3 style="text-align: left; color: #60a5fa;">Gestion des Demandes de Scrims</h3>
+            
+            <div class="info-box" style="margin-top: 15px; margin-bottom: 25px; border-color: rgba(239, 68, 68, 0.4);">
+                <h4 style="color: #fca5a5; margin-top: 0;">🗑️ Suppression ciblée d'un Scrim</h4>
+                <div class="form-group">
+                    <label>Sélectionner le scrim à supprimer :</label>
+                    <select id="admin-delete-scrim-select">
+                        <option value="">-- Aucun scrim disponible --</option>
+                    </select>
+                </div>
+                <button type="button" class="submit-btn" style="background: linear-gradient(135deg, #ef4444, #b91c1c); margin-top: 5px;" onclick="deleteSelectedScrim()">Supprimer ce Scrim</button>
+            </div>
+
+            <div id="admin-scrims-list">
+                <p style="color: #9ca3af;">Chargement des demandes...</p>
+            </div>
+        </div>
+
+        <div id="subcontent-admin-proofs" style="display: none;">
+            <h3 style="text-align: left; color: #60a5fa;">Photos & Preuves de Matchs envoyées</h3>
+            <div id="admin-proofs-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+                <p style="color: #9ca3af;">Chargement des preuves...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
